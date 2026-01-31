@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      target: development
+    ports:
+      - "5173:5173"
+    container_name: admin-web-fitness-frontend-dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    environment:
+      - NODE_ENV=development
+
+  backend:
+    build:
+      context: ./backend
+      target: development
+    ports:
+      - "3000:3000"
+    container_name: admin-web-fitness-backend-dev
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
