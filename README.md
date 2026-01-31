@@ -1,15 +1,6 @@
-# admin-web-fitness
-A web application to handle admin tasks
+## Docker
 
-## Setup
+Build and run with docker-compose: `docker-compose up -d`
 
-1. Install dependencies: `npm install`
-2. Start development server: `npm run dev`
-3. Build for production: `npm run build`
-
-## Technologies
-
-- Vite
-- React
-- TypeScript
-- Tailwind CSS
+- Frontend: http://localhost:8080
+- Backend API: http://localhost:3000/api/health
