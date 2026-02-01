@@ -4,7 +4,7 @@ services:
   frontend:
     build: .
     ports:
-      - "8080:80"
+      - '8080:80'
     container_name: admin-web-fitness-frontend
     depends_on:
       - backend
@@ -12,7 +12,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "3000:3000"
+      - '3000:3000'
     container_name: admin-web-fitness-backend
     environment:
       - NODE_ENV=production

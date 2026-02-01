@@ -6,7 +6,7 @@ services:
       context: .
       target: development
     ports:
-      - "5173:5173"
+      - '5173:5173'
     container_name: admin-web-fitness-frontend-dev
     volumes:
       - .:/app
@@ -21,7 +21,7 @@ services:
       context: ./backend
       target: development
     ports:
-      - "3000:3000"
+      - '3000:3000'
     container_name: admin-web-fitness-backend-dev
     volumes:
       - ./backend:/app
