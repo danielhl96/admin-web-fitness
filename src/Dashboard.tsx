@@ -11,6 +11,25 @@ interface User {
   email: string;
 }
 
+// Type für Exercises (basierend auf Prisma-Schema)
+interface Exercises {
+  id: number;
+  user_id: number;
+  workout_plan_id: number | null;
+  date: string; // DateTime wird als ISO-String serialisiert
+  name: string;
+  sets: number;
+  reps: number[]; // Array von Zahlen
+  weights: number[]; // Array von Floats
+  users: User; // Relation zu User
+  workout_plans: WorkoutPlans | null; // Optionale Relation
+}
+
+// Type für WorkoutPlans (falls benötigt)
+interface WorkoutPlans {
+  id: number;
+  // Weitere Felder je nach Schema
+}
 function Dashboard() {
   const [log, setLogs] = useState([
     { name: 'System started' },
@@ -36,10 +55,40 @@ function Dashboard() {
   ]);
 
   const [user, setUser] = useState<User[]>([]);
+  const [exercises, setExercises] = useState<Exercises[]>([]);
 
   useEffect(() => {
     axios
-      .get<User[]>('http://localhost:3000/api/users')
+      .get<Exercises[]>('http://localhost:3000/api/exercises', {
+        withCredentials: true,
+      })
+      .then((response: AxiosResponse<Exercises[]>) => {
+        setExercises(response.data);
+      })
+      .catch((error: AxiosError) => {
+        if (error.response) {
+          // Server antwortete mit Error Status
+          console.error(
+            'Server Error:',
+            error.response.status,
+            error.response.data
+          );
+        } else if (error.request) {
+          // Request wurde gemacht, aber keine Response
+          console.error('Network Error:', error.request);
+        } else {
+          // Etwas anderes ging schief
+          console.error('Request Error:', error.message);
+        }
+        // Fallback zu den statischen Daten falls API nicht verfügbar
+      });
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get<User[]>('http://localhost:3000/api/users', {
+        withCredentials: true,
+      })
       .then((response: AxiosResponse<User[]>) => {
         setUser(response.data);
       })
@@ -66,7 +115,7 @@ function Dashboard() {
     return (
       <div className="card w-56 bg-black/10 backdrop-blur-md border border-white/20 shadow-xl">
         <h2 className="text-center text-blue-500">User</h2>
-        <p className="text-white text-center text-xs">Name: {user.name}</p>
+
         <p className="text-white text-center text-xs">Mail: {user.email}</p>
         <div className="flex flex-row gap-2 m-2 items-center justify-center">
           <Button w="w-8" border="#3B82F6">
@@ -108,7 +157,13 @@ function Dashboard() {
             title="Statistics Dashboard"
             description="Statistic about workouts, nutrition, and user activity."
           >
-            <div className="flex flex-col overflow-y-auto items-center w-full max-h-[15dvh]"></div>
+            <div className="flex flex-col overflow-y-auto items-center w-full max-h-[15dvh]">
+              {exercises.map((e, index) => (
+                <div key={index} className="mb-2">
+                  <p className="text-white text-center text-xs">{e.name}</p>
+                </div>
+              ))}
+            </div>
           </TemplateCards>
 
           <TemplateCards
