@@ -158,9 +158,13 @@ function Dashboard() {
             description="Statistic about workouts, nutrition, and user activity."
           >
             <div className="flex flex-col overflow-y-auto items-center w-full max-h-[15dvh]">
+              <h1>Logged Exercises:</h1>
               {exercises.map((e, index) => (
                 <div key={index} className="mb-2">
-                  <p className="text-white text-center text-xs">{e.name}</p>
+                  <p className="text-white text-center text-xs">
+                    {e.name} {e.weights.join('kg, ')}kg - Reps:{' '}
+                    {e.reps.join(', ')}
+                  </p>
                 </div>
               ))}
             </div>
