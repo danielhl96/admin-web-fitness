@@ -1,11 +1,11 @@
 generator client {
   provider = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x", "darwin-arm64"]
 }
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://web_fitness_app_user:eNQEoybIiLyk9Vzf5n14YaiLUixfutbp@dpg-d46uufemcj7s73ddjm2g-a.frankfurt-postgres.render.com/web_fitness_app"
+  url      = env("DATABASE_URL")
 }
 
 model exercises {

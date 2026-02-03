@@ -25,6 +25,10 @@ RUN npm ci
 
 COPY . .
 
+RUN apk add --no-cache openssl
+
+RUN npx prisma generate
+
 EXPOSE 3000
 
 CMD ["npm", "run", "dev"]

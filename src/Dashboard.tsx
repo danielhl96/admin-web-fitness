@@ -3,6 +3,7 @@ import TemplateCards from './TemplateCards.tsx';
 import { useEffect, useState } from 'react';
 import axios, { AxiosResponse, AxiosError } from 'axios';
 import Button from './Button.tsx';
+import { FaEye, FaEdit, FaTrash, FaLock } from 'react-icons/fa';
 
 // Type für User
 interface User {
@@ -155,19 +156,19 @@ function Dashboard() {
       <div className="card w-56 bg-black/10 backdrop-blur-md border border-white/20 shadow-xl">
         <h2 className="text-center text-blue-500">User</h2>
 
-        <p className="text-white text-center text-xs">Mail: {user.email}</p>
+        <p className="text-center text-xs">Mail: {user.email}</p>
         <div className="flex flex-row gap-2 m-2 items-center justify-center">
-          <Button w="w-8" border="#3B82F6">
-            View
+          <Button w="w-12" border="#3B82F6">
+            <FaEye size={20} style={{ color: '#3B82F6' }} />
           </Button>
-          <Button w="w-8" border="#3B82F6">
-            Edit
+          <Button w="w-12" border="#3B82F6">
+            <FaEdit size={20} style={{ color: '#3B82F6' }} />
           </Button>
-          <Button w="w-8" border="#3B82F6">
-            Delete
+          <Button w="w-12" border="#3B82F6">
+            <FaTrash size={20} style={{ color: '#EF4444' }} />
           </Button>
-          <Button w="w-8" border="#3B82F6">
-            Lock
+          <Button w="w-12" border="#3B82F6">
+            <FaLock size={20} style={{ color: '#F59E0B' }} />
           </Button>
         </div>
       </div>
@@ -182,7 +183,7 @@ function Dashboard() {
             title="User Management"
             description="Maintain and manage user accounts, roles, and permissions with ease."
           >
-            <h1>Registered Users:</h1>
+            <h1 className="mb-2">Registered Users: {user.length}</h1>
             <div className="flex flex-col items-center space-y-2 w-full overflow-y-auto max-h-[20dvh] ">
               {user.map((u, index) => (
                 <div key={u.id || index} className="mb-2">
@@ -196,8 +197,8 @@ function Dashboard() {
             title="Statistics Exercises"
             description="Statistic about workouts, nutrition, and user activity."
           >
+            <h1 className="mb-2">Logged Exercises: {exercises.length}</h1>
             <div className="flex flex-col overflow-y-auto items-center w-full max-h-[15dvh]">
-              <h1>Logged Exercises:</h1>
               {exercises.map((e, index) => (
                 <div key={index} className="mb-2">
                   <p className="text-white text-center text-xs">
@@ -213,8 +214,8 @@ function Dashboard() {
             title="Statistics Meals"
             description="Statistic about nutrition, calories, and user activity."
           >
-            <div className="flex flex-col overflow-y-auto items-center w-full max-h-[15dvh]">
-              <h1>Logged meals:</h1>
+            <h1 className="mb-2">Logged meals: {meals.length}</h1>
+            <div className="flex flex-col  overflow-y-auto items-center w-full max-h-[15dvh]">
               {meals.map((e, index) => (
                 <div key={index} className="mb-2">
                   <p className="text-white text-center text-xs">
