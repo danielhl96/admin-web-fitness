@@ -11,6 +11,17 @@ interface User {
   email: string;
 }
 
+interface Meal {
+  id: number;
+  user_id: number;
+  date: string; // DateTime wird als ISO-String serialisiert
+  name: string;
+  calories: number;
+  protein: number; // in grams
+  carbs: number; // in grams
+  fats: number; // in grams
+}
+
 // Type für Exercises (basierend auf Prisma-Schema)
 interface Exercises {
   id: number;
@@ -56,6 +67,34 @@ function Dashboard() {
 
   const [user, setUser] = useState<User[]>([]);
   const [exercises, setExercises] = useState<Exercises[]>([]);
+  const [meals, setMeals] = useState<Meal[]>([]);
+
+  useEffect(() => {
+    axios
+      .get<Meal[]>('http://localhost:3000/api/meals', {
+        withCredentials: true,
+      })
+      .then((response: AxiosResponse<Meal[]>) => {
+        setMeals(response.data);
+      })
+      .catch((error: AxiosError) => {
+        if (error.response) {
+          // Server antwortete mit Error Status
+          console.error(
+            'Server Error:',
+            error.response.status,
+            error.response.data
+          );
+        } else if (error.request) {
+          // Request wurde gemacht, aber keine Response
+          console.error('Network Error:', error.request);
+        } else {
+          // Etwas anderes ging schief
+          console.error('Request Error:', error.message);
+        }
+        // Fallback zu den statischen Daten falls API nicht verfügbar
+      });
+  }, []);
 
   useEffect(() => {
     axios
@@ -154,7 +193,7 @@ function Dashboard() {
           </TemplateCards>
 
           <TemplateCards
-            title="Statistics Dashboard"
+            title="Statistics Exercises"
             description="Statistic about workouts, nutrition, and user activity."
           >
             <div className="flex flex-col overflow-y-auto items-center w-full max-h-[15dvh]">
@@ -164,6 +203,23 @@ function Dashboard() {
                   <p className="text-white text-center text-xs">
                     {e.name} {e.weights.join('kg, ')}kg - Reps:{' '}
                     {e.reps.join(', ')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </TemplateCards>
+
+          <TemplateCards
+            title="Statistics Meals"
+            description="Statistic about nutrition, calories, and user activity."
+          >
+            <div className="flex flex-col overflow-y-auto items-center w-full max-h-[15dvh]">
+              <h1>Logged meals:</h1>
+              {meals.map((e, index) => (
+                <div key={index} className="mb-2">
+                  <p className="text-white text-center text-xs">
+                    {e.name} - {e.calories} kcal P: {e.protein}g, C: {e.carbs}g
+                    F: {e.fats}g
                   </p>
                 </div>
               ))}
