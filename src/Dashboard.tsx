@@ -158,17 +158,17 @@ function Dashboard() {
 
         <p className="text-center text-xs">Mail: {user.email}</p>
         <div className="flex flex-row gap-2 m-2 items-center justify-center">
-          <Button w="w-12" border="#3B82F6">
-            <FaEye size={20} style={{ color: '#3B82F6' }} />
+          <Button w="w-11" border="#3B82F6">
+            <FaEye size={20} />
           </Button>
-          <Button w="w-12" border="#3B82F6">
-            <FaEdit size={20} style={{ color: '#3B82F6' }} />
+          <Button w="w-11" border="#3B82F6">
+            <FaEdit size={20} />
           </Button>
-          <Button w="w-12" border="#3B82F6">
-            <FaTrash size={20} style={{ color: '#EF4444' }} />
+          <Button w="w-11" border="#3B82F6">
+            <FaTrash size={20} />
           </Button>
-          <Button w="w-12" border="#3B82F6">
-            <FaLock size={20} style={{ color: '#F59E0B' }} />
+          <Button w="w-11" border="#3B82F6">
+            <FaLock size={20} />
           </Button>
         </div>
       </div>
@@ -179,12 +179,11 @@ function Dashboard() {
       <Header />
       <div className="items-center justify-center  flex flex-col pt-5">
         <div className="grid grid-cols-1 gap-3 lg:gap-2 py-2 lg:grid-cols-3 items-center justify-center px-3 lg:px-2 overflow-y-auto max-h-screen">
-          <TemplateCards
-            title="User Management"
-            description="Maintain and manage user accounts, roles, and permissions with ease."
-          >
-            <h1 className="mb-2">Registered Users: {user.length}</h1>
-            <div className="flex flex-col items-center space-y-2 w-full overflow-y-auto max-h-[20dvh] ">
+          <TemplateCards title="User Management">
+            <div className="divider divider-primary">
+              Registered Users: {user.length}
+            </div>
+            <div className="flex flex-col items-center space-y-2 w-full overflow-y-auto max-h-[20dvh] lg:max-h-[50dvh] ">
               {user.map((u, index) => (
                 <div key={u.id || index} className="mb-2">
                   {UserCard(u)}
@@ -193,12 +192,11 @@ function Dashboard() {
             </div>
           </TemplateCards>
 
-          <TemplateCards
-            title="Statistics Exercises"
-            description="Statistic about workouts, nutrition, and user activity."
-          >
-            <h1 className="mb-2">Logged Exercises: {exercises.length}</h1>
-            <div className="flex flex-col overflow-y-auto items-center w-full max-h-[15dvh]">
+          <TemplateCards title="Statistics Exercises">
+            <div className="divider divider-primary">
+              Logged Exercises: {exercises.length}
+            </div>
+            <div className="flex flex-col overflow-y-auto items-center w-full max-h-[20dvh] lg:max-h-[50dvh]">
               {exercises.map((e, index) => (
                 <div key={index} className="mb-2">
                   <p className="text-white text-center text-xs">
@@ -210,31 +208,17 @@ function Dashboard() {
             </div>
           </TemplateCards>
 
-          <TemplateCards
-            title="Statistics Meals"
-            description="Statistic about nutrition, calories, and user activity."
-          >
-            <h1 className="mb-2">Logged meals: {meals.length}</h1>
-            <div className="flex flex-col  overflow-y-auto items-center w-full max-h-[15dvh]">
+          <TemplateCards title="Statistics Meals">
+            <div className="divider divider-primary">
+              Logged Meals: {meals.length}
+            </div>
+            <div className="flex flex-col  overflow-y-auto items-center w-full max-h-[20dvh] lg:max-h-[50dvh]">
               {meals.map((e, index) => (
                 <div key={index} className="mb-2">
                   <p className="text-white text-center text-xs">
                     {e.name} - {e.calories} kcal P: {e.protein}g, C: {e.carbs}g
                     F: {e.fats}g
                   </p>
-                </div>
-              ))}
-            </div>
-          </TemplateCards>
-
-          <TemplateCards
-            title="History Logs"
-            description="Collect, analyze, and monitor system logs for improved troubleshooting and security."
-          >
-            <div className="flex flex-col overflow-y-auto items-center w-full max-h-[15dvh]">
-              {log.map((l, index) => (
-                <div key={index} className="mb-2">
-                  <p className="text-white text-center text-xs">{l.name}</p>
                 </div>
               ))}
             </div>

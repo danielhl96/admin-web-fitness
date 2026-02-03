@@ -105,32 +105,15 @@ app.get('/api/meals', async (req, res, next) => {
   }
 });
 
-// Body metrics routes
-app.get('/api/body-metrics', async (req, res, next) => {
+app.get('/api/profile/:id', async (req, res) => {
+  const userId = parseInt(req.params.id);
   try {
-    const metrics = await prisma.history_body_metrics.findMany({
-      include: {
-        users: true,
-      },
+    const userProfile = await prisma.users.findUnique({
+      where: { id: userId },
     });
-    res.json(metrics);
+    res.json(userProfile);
   } catch (error) {
-    next(error);
-  }
-});
-
-// Workout plans routes
-app.get('/api/workout-plans', async (req, res, next) => {
-  try {
-    const plans = await prisma.workout_plans.findMany({
-      include: {
-        exercises: true,
-        plan_exercise_templates: true,
-      },
-    });
-    res.json(plans);
-  } catch (error) {
-    next(error);
+    res.status(500).json({ error: 'Failed to fetch profile' });
   }
 });
 
