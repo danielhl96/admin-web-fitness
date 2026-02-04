@@ -5,7 +5,9 @@ import { useEffect, useState } from 'react';
 import axios, { AxiosResponse, AxiosError } from 'axios';
 import Button from './Button.tsx';
 import { FaEye, FaEdit, FaTrash, FaLock } from 'react-icons/fa';
-import Input from './Input.tsx';
+
+import EmailInput from './emailinput.tsx';
+import PasswordInput from './passwordinput.tsx';
 
 function getActivityLevelString(level: string | null | undefined): string {
   if (level == null) return 'N/A';
@@ -33,6 +35,41 @@ async function handleEmailChangeApi(
     const response = await axios.put(
       `http://localhost:3000/api/email/${userId}`,
       { email },
+      { withCredentials: true }
+    );
+    console.log('Server response:', response.data);
+
+    if (setModalOpen) setModalOpen(false);
+    return response;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        console.error(
+          'Server Error:',
+          error.response.status,
+          error.response.data
+        );
+      } else if (error.request) {
+        console.error('Network Error:', error.request);
+      } else {
+        console.error('Request Error:', error.message);
+      }
+    } else {
+      console.error(error);
+    }
+    throw error;
+  }
+}
+
+async function handlePasswordChangeApi(
+  password: string,
+  userId: number,
+  setModalOpen?: (open: boolean) => void
+): Promise<AxiosResponse<any> | void> {
+  try {
+    const response = await axios.put(
+      `http://localhost:3000/api/password/${userId}`,
+      { password },
       { withCredentials: true }
     );
     console.log('Server response:', response.data);
@@ -97,9 +134,15 @@ interface ModalPasswordChangeProps {
   password: string;
   confirmPassword: string;
   userid: number;
-  onEmailChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onConfirmPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  errorEmail?: (hasError: boolean) => void;
+  errorPassword?: (hasError: boolean) => void;
+  errorConfirmPassword?: (hasError: boolean) => void;
+  emailHasError?: boolean;
+  passwordHasError?: boolean;
+  confirmPasswordHasError?: boolean;
+  onEmailChange: (value: string) => void;
+  onPasswordChange: (value: string) => void;
+  onConfirmPasswordChange: (value: string) => void;
   onClose: () => void;
   onSaved?: () => Promise<void> | void;
 }
@@ -114,19 +157,25 @@ function ModalPasswordChange({
   onClose,
   userid,
   onSaved,
+  errorEmail,
+  errorPassword,
+  errorConfirmPassword,
+  emailHasError,
+  passwordHasError,
+  confirmPasswordHasError,
 }: ModalPasswordChangeProps) {
   return (
     <TemplateModal title="Change Credentials">
       <div className="divider divider-primary"></div>
       <div className="flex flex-col space-y-2">
         <div className="flex gap-2 flex-row text-white text-sm">
-          <Input
+          <EmailInput
             value={email}
             onChange={onEmailChange}
-            w="w-64"
-            placeholder="Email"
+            onError={errorEmail}
           />
           <Button
+            disabled={email === '' || Boolean(emailHasError)}
             onClick={async () => {
               try {
                 await handleEmailChangeApi(email, userid);
@@ -143,21 +192,39 @@ function ModalPasswordChange({
           </Button>
         </div>
 
-        <Input
+        <PasswordInput
           value={password}
           onChange={onPasswordChange}
-          w="w-64"
           placeholder="New Password"
+          onError={errorPassword}
         />
         <div className="flex flex-row text-white text-sm gap-2">
-          <Input
+          <PasswordInput
             value={confirmPassword}
             onChange={onConfirmPasswordChange}
-            w="w-64"
             placeholder="Confirm New Password"
+            onError={errorConfirmPassword}
           />
 
-          <Button w="sm:w-auto w-12" border="#3B82F6">
+          <Button
+            disabled={
+              password === '' ||
+              password !== confirmPassword ||
+              Boolean(passwordHasError) ||
+              Boolean(confirmPasswordHasError)
+            }
+            onClick={async () => {
+              try {
+                await handlePasswordChangeApi(password, userid);
+                if (onSaved) await onSaved();
+                onClose();
+              } catch (err) {
+                console.error('Save password failed', err);
+              }
+            }}
+            w="sm:w-auto w-12"
+            border="#3B82F6"
+          >
             Save
           </Button>
         </div>
@@ -242,32 +309,29 @@ interface User {
 interface Meal {
   id: number;
   user_id: number;
-  date: string; // DateTime wird als ISO-String serialisiert
+  date: string;
   name: string;
   calories: number;
-  protein: number; // in grams
-  carbs: number; // in grams
-  fats: number; // in grams
+  protein: number;
+  carbs: number;
+  fats: number;
 }
 
-// Type für Exercises (basierend auf Prisma-Schema)
 interface Exercises {
   id: number;
   user_id: number;
   workout_plan_id: number | null;
-  date: string; // DateTime wird als ISO-String serialisiert
+  date: string;
   name: string;
   sets: number;
-  reps: number[]; // Array von Zahlen
-  weights: number[]; // Array von Floats
-  users: User; // Relation zu User
-  workout_plans: WorkoutPlans | null; // Optionale Relation
+  reps: number[];
+  weights: number[];
+  users: User;
+  workout_plans: WorkoutPlans | null;
 }
 
-// Type für WorkoutPlans (falls benötigt)
 interface WorkoutPlans {
   id: number;
-  // Weitere Felder je nach Schema
 }
 function Dashboard() {
   const [users, setUsers] = useState<User[]>([]);
@@ -279,30 +343,25 @@ function Dashboard() {
   const [Email, setEmail] = useState<string>('');
   const [Password, setPassword] = useState<string>('');
   const [ConfirmPassword, setConfirmPassword] = useState<string>('');
+  const [passwordError, setPasswordError] = useState<boolean>(false);
+  const [confirmPasswordError, setConfirmPasswordError] =
+    useState<boolean>(false);
+  const [emailError, setEmailError] = useState<boolean>(false);
 
-  const handleEmailChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setEmail(e.target.value);
-      console.log('Email changed to:', e.target.value);
-    },
-    []
-  );
+  const handleEmailChange = useCallback((value: string) => {
+    setEmail(value);
+    console.log('Email changed to:', value);
+  }, []);
 
-  const handlePasswordChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setPassword(e.target.value);
-      console.log('Password changed to:', e.target.value);
-    },
-    []
-  );
+  const handlePasswordChange = useCallback((value: string) => {
+    setPassword(value);
+    console.log('Password changed to:', value);
+  }, []);
 
-  const handleConfirmPasswordChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setConfirmPassword(e.target.value);
-      console.log('Confirm Password changed to:', e.target.value);
-    },
-    []
-  );
+  const handleConfirmPasswordChange = useCallback((value: string) => {
+    setConfirmPassword(value);
+    console.log('Confirm Password changed to:', value);
+  }, []);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -374,20 +433,16 @@ function Dashboard() {
       })
       .catch((error: AxiosError) => {
         if (error.response) {
-          // Server antwortete mit Error Status
           console.error(
             'Server Error:',
             error.response.status,
             error.response.data
           );
         } else if (error.request) {
-          // Request wurde gemacht, aber keine Response
           console.error('Network Error:', error.request);
         } else {
-          // Etwas anderes ging schief
           console.error('Request Error:', error.message);
         }
-        // Fallback zu den statischen Daten falls API nicht verfügbar
       });
   }, []);
 
@@ -401,20 +456,16 @@ function Dashboard() {
       })
       .catch((error: AxiosError) => {
         if (error.response) {
-          // Server antwortete mit Error Status
           console.error(
             'Server Error:',
             error.response.status,
             error.response.data
           );
         } else if (error.request) {
-          // Request wurde gemacht, aber keine Response
           console.error('Network Error:', error.request);
         } else {
-          // Etwas anderes ging schief
           console.error('Request Error:', error.message);
         }
-        // Fallback zu den statischen Daten falls API nicht verfügbar
       });
   }, []);
 
@@ -422,7 +473,6 @@ function Dashboard() {
     fetchUsers();
   }, [fetchUsers]);
 
-  // Removed old UserCard function
   return (
     <div className="min-h-[100dvh] bg-gradient-to-b from-gray-900 to-black ">
       <Header />
@@ -494,6 +544,12 @@ function Dashboard() {
           onClose={() => setIsEditing(false)}
           userid={selectedUser ? selectedUser.id : 0}
           onSaved={fetchUsers}
+          errorPassword={(error) => setPasswordError(error)}
+          errorConfirmPassword={(error) => setConfirmPasswordError(error)}
+          errorEmail={(error) => setEmailError(error)}
+          emailHasError={emailError}
+          passwordHasError={passwordError}
+          confirmPasswordHasError={confirmPasswordError}
         />
       )}
     </div>

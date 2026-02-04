@@ -142,6 +142,8 @@ app.put('/api/email/:id', async (req, res) => {
 
 app.put('/api/password/:id', async (req, res) => {
   const userId = parseInt(req.params.id);
+  console.log('Received password update request for user ID:', userId);
+  console.log('Request body:', req.body);
   const { password } = req.body;
 
   if (!password || typeof password !== 'string') {
