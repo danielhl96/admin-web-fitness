@@ -4,6 +4,7 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
+import argon2 from 'argon2';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -114,6 +115,59 @@ app.get('/api/profile/:id', async (req, res) => {
     res.json(userProfile);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+});
+
+app.put('/api/email/:id', async (req, res) => {
+  const userId = parseInt(req.params.id);
+  console.log('Received email update request for user ID:', userId);
+  const { email } = req.body;
+
+  if (!email || typeof email !== 'string') {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  try {
+    const updatedUser = await prisma.users.update({
+      where: { id: userId },
+      data: { email },
+    });
+
+    res.status(200).json('Email updated successfully');
+  } catch (error) {
+    console.error('Email update failed:', error);
+    res.status(500).json({ error: 'Failed to update email' });
+  }
+});
+
+app.put('/api/password/:id', async (req, res) => {
+  const userId = parseInt(req.params.id);
+  const { password } = req.body;
+
+  if (!password || typeof password !== 'string') {
+    return res.status(400).json({ error: 'Password is required' });
+  }
+
+  try {
+    // Hash the password with Argon2 before storing
+    const hashed = await argon2.hash(password, {
+      timeCost: 3,
+      memoryCost: 256,
+      parallelism: 4,
+      hashLength: 32,
+      saltLength: 16,
+      type: argon2.argon2id,
+    });
+
+    const updatedUser = await prisma.users.update({
+      where: { id: userId },
+      data: { password: hashed },
+    });
+
+    res.status(200).json('Password updated successfully');
+  } catch (error) {
+    console.error('Password update failed:', error);
+    res.status(500).json({ error: 'Failed to update password' });
   }
 });
 
