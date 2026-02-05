@@ -118,6 +118,59 @@ app.get('/api/profile/:id', async (req, res) => {
   }
 });
 
+app.delete('/api/user/:id', async (req, res) => {
+  const userId = parseInt(req.params.id);
+  console.log('Received delete request for user ID:', userId);
+
+  try {
+    await prisma.exercises.deleteMany({ where: { user_id: userId } });
+  } catch (error) {
+    console.error('Exercises deletion failed:', error);
+  }
+
+  try {
+    const planIds = await prisma.workout_plans
+      .findMany({ where: { user_id: userId }, select: { id: true } })
+      .then((plans) => plans.map((plan) => plan.id));
+
+    if (planIds.length > 0) {
+      await prisma.plan_exercise_templates.deleteMany({
+        where: { workout_plan_id: { in: planIds } },
+      });
+    }
+  } catch (error) {
+    console.error('Plan exercise templates deletion failed:', error);
+  }
+
+  try {
+    await prisma.workout_plans.deleteMany({ where: { user_id: userId } });
+  } catch (error) {
+    console.error('Workout plans deletion failed:', error);
+  }
+
+  try {
+    await prisma.history_body_metrics.deleteMany({
+      where: { user_id: userId },
+    });
+  } catch (error) {
+    console.error('History body metrics deletion failed:', error);
+  }
+
+  try {
+    await prisma.meals.deleteMany({ where: { user_id: userId } });
+  } catch (error) {
+    console.error('Meals deletion failed:', error);
+  }
+
+  try {
+    await prisma.users.delete({ where: { id: userId } });
+    res.status(200).json('User deleted successfully');
+  } catch (error) {
+    console.error('User deletion failed:', error);
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
 app.put('/api/email/:id', async (req, res) => {
   const userId = parseInt(req.params.id);
   console.log('Received email update request for user ID:', userId);

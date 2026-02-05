@@ -4,7 +4,7 @@ import React, { useCallback } from 'react';
 import { useEffect, useState } from 'react';
 import axios, { AxiosResponse, AxiosError } from 'axios';
 import Button from './Button.tsx';
-import { FaEye, FaEdit, FaTrash, FaLock } from 'react-icons/fa';
+import { FaEye, FaEdit, FaTrash, FaLock, FaPlus } from 'react-icons/fa';
 
 import EmailInput from './emailinput.tsx';
 import PasswordInput from './passwordinput.tsx';
@@ -96,6 +96,38 @@ async function handlePasswordChangeApi(
   }
 }
 
+async function handleAccountDeleteApi(
+  userId: number,
+  setModalOpen?: (open: boolean) => void
+): Promise<AxiosResponse<any> | void> {
+  try {
+    const response = await axios.delete(
+      `http://localhost:3000/api/user/${userId}`,
+      { withCredentials: true }
+    );
+    console.log('Server response:', response.data);
+    if (setModalOpen) setModalOpen(false);
+    return response;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        console.error(
+          'Server Error:',
+          error.response.status,
+          error.response.data
+        );
+      } else if (error.request) {
+        console.error('Network Error:', error.request);
+      } else {
+        console.error('Request Error:', error.message);
+      }
+    } else {
+      console.error(error);
+    }
+    throw error;
+  }
+}
+
 function getGoalString(goal: string | null | undefined): string {
   if (goal == null) return 'N/A';
   switch (goal) {
@@ -126,6 +158,50 @@ function TemplateModal({
         <div>{children}</div>
       </div>
     </div>
+  );
+}
+interface ModalAccountDeleteProps {
+  setDeleting: (deleting: boolean) => void;
+  selectedUser: User | null;
+  onSaved?: () => Promise<void> | void;
+}
+function ModalAccountDelete({
+  setDeleting,
+  selectedUser,
+  onSaved,
+}: ModalAccountDeleteProps) {
+  return (
+    <TemplateModal title="Delete Account">
+      <div className="divider divider-primary"></div>
+      <p className="text-white text-center break-words">
+        Are you sure you want to delete the account with following email:{' '}
+        {selectedUser?.email}? This action cannot be undone.
+      </p>
+      <div className="divider divider-primary"></div>
+      <div className="flex flex-row gap-2 justify-center mt-4">
+        <Button
+          onClick={async () => {
+            try {
+              await handleAccountDeleteApi(selectedUser?.id, setDeleting);
+              if (onSaved) await onSaved();
+            } catch (err) {
+              console.error('Delete account failed', err);
+            }
+          }}
+          w="sm:w-auto w-12"
+          border="#FF0000"
+        >
+          Delete
+        </Button>
+        <Button
+          onClick={() => setDeleting(false)}
+          w="sm:w-auto w-12"
+          border="#3B82F6"
+        >
+          Cancel
+        </Button>
+      </div>
+    </TemplateModal>
   );
 }
 
@@ -340,6 +416,7 @@ function Dashboard() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [Email, setEmail] = useState<string>('');
   const [Password, setPassword] = useState<string>('');
   const [ConfirmPassword, setConfirmPassword] = useState<string>('');
@@ -412,7 +489,14 @@ function Dashboard() {
           >
             <FaEdit size={20} />
           </Button>
-          <Button w="w-11" border="#3B82F6">
+          <Button
+            onClick={() => {
+              setIsDeleting(true);
+              setSelectedUser(user);
+            }}
+            w="w-11"
+            border="#3B82F6"
+          >
             <FaTrash size={20} />
           </Button>
           <Button w="w-11" border="#3B82F6">
@@ -479,6 +563,11 @@ function Dashboard() {
       <div className="items-center justify-center  flex flex-col pt-5">
         <div className="grid grid-cols-1 gap-3 lg:gap-2 py-2 lg:grid-cols-3 items-center justify-center px-3 lg:px-2 overflow-y-auto max-h-screen">
           <TemplateCards title="User Management">
+            <div className="flex top-0 left-0 w-full justify-end mb-0">
+              <Button onClick={() => {}} w="sm:w-auto w-10" border="#3B82F6">
+                <FaPlus size={12} />
+              </Button>
+            </div>
             <div className="divider divider-primary">
               Registered Users: {users.length}
             </div>
@@ -550,6 +639,13 @@ function Dashboard() {
           emailHasError={emailError}
           passwordHasError={passwordError}
           confirmPasswordHasError={confirmPasswordError}
+        />
+      )}
+      {isDeleting && (
+        <ModalAccountDelete
+          setDeleting={setIsDeleting}
+          selectedUser={selectedUser}
+          onSaved={fetchUsers}
         />
       )}
     </div>
