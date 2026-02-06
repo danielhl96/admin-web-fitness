@@ -128,6 +128,34 @@ async function handleAccountDeleteApi(
   }
 }
 
+async function GeneratePassword() {
+  try {
+    const response = await axios.get(
+      'http://localhost:3000/api/createPassword',
+      { withCredentials: true }
+    );
+    console.log('Server response:', response.data);
+    return response.data.password;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        console.error(
+          'Server Error:',
+          error.response.status,
+          error.response.data
+        );
+      } else if (error.request) {
+        console.error('Network Error:', error.request);
+      } else {
+        console.error('Request Error:', error.message);
+      }
+    } else {
+      console.error(error);
+    }
+    throw error;
+  }
+}
+
 function getGoalString(goal: string | null | undefined): string {
   if (goal == null) return 'N/A';
   switch (goal) {
@@ -160,6 +188,57 @@ function TemplateModal({
     </div>
   );
 }
+
+interface ModalAccountAddProps {
+  onSaved?: () => Promise<void> | void;
+  setIsAddingAccount: (adding: boolean) => void;
+}
+
+function ModalAccountAdd({
+  onSaved,
+  setIsAddingAccount,
+}: ModalAccountAddProps) {
+  return (
+    <TemplateModal title="Add Account">
+      <div className="divider divider-primary"></div>
+      <div className="flex flex-col gap-2 justify-center mt-4">
+        <EmailInput value="" onChange={() => {}} onError={() => {}} />
+        <PasswordInput
+          value=""
+          onChange={() => {}}
+          placeholder="Password"
+          onError={() => {}}
+        />
+        <PasswordInput
+          value=""
+          onChange={() => {}}
+          placeholder="Confirm Password"
+          onError={() => {}}
+        />
+        <div className="divider divider-primary"></div>
+        <div className="flex flex-row gap-2">
+          <Button
+            onClick={() => {
+              setIsAddingAccount(false);
+            }}
+            w="sm:w-auto w-12"
+            border="#3B82F6"
+          >
+            Create
+          </Button>
+          <Button
+            onClick={() => setIsAddingAccount(false)}
+            w="sm:w-auto w-12"
+            border="#FF0000"
+          >
+            Cancel
+          </Button>
+        </div>
+      </div>
+    </TemplateModal>
+  );
+}
+
 interface ModalAccountDeleteProps {
   setDeleting: (deleting: boolean) => void;
   selectedUser: User | null;
@@ -281,6 +360,19 @@ function ModalPasswordChange({
             placeholder="Confirm New Password"
             onError={errorConfirmPassword}
           />
+
+          <Button
+            onClick={async () => {
+              console.log('Generating password...');
+              const generated = await GeneratePassword();
+              onPasswordChange(generated);
+              onConfirmPasswordChange(generated);
+            }}
+            w="sm:w-auto w-12"
+            border="#3B82F6"
+          >
+            Generate
+          </Button>
 
           <Button
             disabled={
@@ -424,6 +516,7 @@ function Dashboard() {
   const [confirmPasswordError, setConfirmPasswordError] =
     useState<boolean>(false);
   const [emailError, setEmailError] = useState<boolean>(false);
+  const [isAddingAccount, setIsAddingAccount] = useState<boolean>(false);
 
   const handleEmailChange = useCallback((value: string) => {
     setEmail(value);
@@ -564,7 +657,13 @@ function Dashboard() {
         <div className="grid grid-cols-1 gap-3 lg:gap-2 py-2 lg:grid-cols-3 items-center justify-center px-3 lg:px-2 overflow-y-auto max-h-screen">
           <TemplateCards title="User Management">
             <div className="flex top-0 left-0 w-full justify-end mb-0">
-              <Button onClick={() => {}} w="sm:w-auto w-10" border="#3B82F6">
+              <Button
+                onClick={() => {
+                  setIsAddingAccount(true);
+                }}
+                w="sm:w-auto w-10"
+                border="#3B82F6"
+              >
                 <FaPlus size={12} />
               </Button>
             </div>
@@ -645,6 +744,12 @@ function Dashboard() {
         <ModalAccountDelete
           setDeleting={setIsDeleting}
           selectedUser={selectedUser}
+          onSaved={fetchUsers}
+        />
+      )}
+      {isAddingAccount && (
+        <ModalAccountAdd
+          setIsAddingAccount={setIsAddingAccount}
           onSaved={fetchUsers}
         />
       )}

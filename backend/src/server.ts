@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
 import argon2 from 'argon2';
+import generate from 'generate-password';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -101,6 +102,22 @@ app.get('/api/meals', async (req, res, next) => {
       },
     });
     res.json(meals);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/createPassword', async (req, res, next) => {
+  console.log('Received request to generate password');
+  try {
+    const password = generate.generate({
+      length: 12,
+      numbers: true,
+      symbols: true,
+      uppercase: true,
+      lowercase: true,
+    });
+    res.json({ password });
   } catch (error) {
     next(error);
   }
