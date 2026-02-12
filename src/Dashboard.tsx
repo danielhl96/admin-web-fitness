@@ -4,10 +4,11 @@ import React, { useCallback } from 'react';
 import { useEffect, useState } from 'react';
 import axios, { AxiosResponse, AxiosError } from 'axios';
 import Button from './Button.tsx';
-import { FaEye, FaEdit, FaTrash, FaLock, FaPlus } from 'react-icons/fa';
+import { FaEye, FaEdit, FaTrash, FaLock, FaPlus, FaKey } from 'react-icons/fa';
 
 import EmailInput from './emailinput.tsx';
 import PasswordInput from './passwordinput.tsx';
+import { on } from 'events';
 
 function getActivityLevelString(level: string | null | undefined): string {
   if (level == null) return 'N/A';
@@ -192,34 +193,101 @@ function TemplateModal({
 interface ModalAccountAddProps {
   onSaved?: () => Promise<void> | void;
   setIsAddingAccount: (adding: boolean) => void;
+  onPasswordChange?: (password: string) => void;
+  onConfirmPasswordChange?: (password: string) => void;
+  onEmailChange?: (email: string) => void;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  errorPassword?: (hasError: boolean) => void;
+  errorConfirmPassword?: (hasError: boolean) => void;
+  errorEmail?: (hasError: boolean) => void;
+  emailHasError?: boolean;
+  passwordHasError?: boolean;
+  confirmPasswordHasError?: boolean;
 }
 
 function ModalAccountAdd({
   onSaved,
   setIsAddingAccount,
+  onPasswordChange = () => {},
+  onConfirmPasswordChange = () => {},
+  onEmailChange = () => {},
+  email,
+  password,
+  confirmPassword,
+  errorPassword = () => {},
+  errorConfirmPassword = () => {},
+  errorEmail = () => {},
+  emailHasError,
+  passwordHasError,
+  confirmPasswordHasError,
 }: ModalAccountAddProps) {
   return (
     <TemplateModal title="Add Account">
       <div className="divider divider-primary"></div>
       <div className="flex flex-col gap-2 justify-center mt-4">
-        <EmailInput value="" onChange={() => {}} onError={() => {}} />
+        <EmailInput
+          value={email}
+          onChange={(e) => onEmailChange(e)}
+          onError={(error) => errorEmail && errorEmail(error)}
+        />
         <PasswordInput
-          value=""
-          onChange={() => {}}
+          value={password}
+          onChange={(e) => onPasswordChange(e)}
           placeholder="Password"
-          onError={() => {}}
+          onError={(error) => errorPassword && errorPassword(error)}
         />
         <PasswordInput
-          value=""
-          onChange={() => {}}
+          value={confirmPassword}
+          onChange={(e) => onConfirmPasswordChange(e)}
           placeholder="Confirm Password"
-          onError={() => {}}
+          onError={(error) =>
+            errorConfirmPassword && errorConfirmPassword(error)
+          }
         />
+        <Button
+          onClick={async () => {
+            console.log('Generating password...');
+            const generated = await GeneratePassword();
+            onPasswordChange(generated);
+            onConfirmPasswordChange(generated);
+          }}
+          w="sm:w-28 w-28"
+          border="#3B82F6"
+        >
+          <>
+            <FaKey size={16} className="mr-1" /> Generate
+          </>
+        </Button>
         <div className="divider divider-primary"></div>
         <div className="flex flex-row gap-2">
           <Button
-            onClick={() => {
-              setIsAddingAccount(false);
+            disabled={
+              email === '' ||
+              password === '' ||
+              confirmPassword === '' ||
+              password !== confirmPassword ||
+              Boolean(emailHasError) ||
+              Boolean(passwordHasError) ||
+              Boolean(confirmPasswordHasError)
+            }
+            onClick={async () => {
+              try {
+                await axios.post(
+                  'http://localhost:3000/api/user',
+                  { email, password },
+                  { withCredentials: true }
+                );
+                if (onSaved) await onSaved();
+                onPasswordChange('');
+                onConfirmPasswordChange('');
+                onEmailChange('');
+
+                setIsAddingAccount(false);
+              } catch (err) {
+                console.error('Create account failed', err);
+              }
             }}
             w="sm:w-auto w-12"
             border="#3B82F6"
@@ -368,10 +436,12 @@ function ModalPasswordChange({
               onPasswordChange(generated);
               onConfirmPasswordChange(generated);
             }}
-            w="sm:w-auto w-12"
+            w="sm:w-28 w-12"
             border="#3B82F6"
           >
-            Generate
+            <>
+              <FaKey size={16} className="mr-1" />
+            </>
           </Button>
 
           <Button
@@ -751,6 +821,18 @@ function Dashboard() {
         <ModalAccountAdd
           setIsAddingAccount={setIsAddingAccount}
           onSaved={fetchUsers}
+          onEmailChange={handleEmailChange}
+          onPasswordChange={handlePasswordChange}
+          onConfirmPasswordChange={handleConfirmPasswordChange}
+          confirmPassword={ConfirmPassword}
+          password={Password}
+          email={Email}
+          errorPassword={(error) => setPasswordError(error)}
+          errorConfirmPassword={(error) => setConfirmPasswordError(error)}
+          errorEmail={(error) => setEmailError(error)}
+          emailHasError={emailError}
+          passwordHasError={passwordError}
+          confirmPasswordHasError={confirmPasswordError}
         />
       )}
     </div>

@@ -135,6 +135,37 @@ app.get('/api/profile/:id', async (req, res) => {
   }
 });
 
+app.post('/api/user', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
+
+  try {
+    const hashedPassword = await argon2.hash(password, {
+      timeCost: 3,
+      memoryCost: 256,
+      parallelism: 4,
+      hashLength: 32,
+      saltLength: 16,
+      type: argon2.argon2id,
+    });
+
+    const newUser = await prisma.users.create({
+      data: {
+        email,
+        password: hashedPassword,
+      },
+    });
+
+    res.status(201).json(newUser);
+  } catch (error) {
+    console.error('User creation failed:', error);
+    res.status(500).json({ error: 'Failed to create user' });
+  }
+});
+
 app.delete('/api/user/:id', async (req, res) => {
   const userId = parseInt(req.params.id);
   console.log('Received delete request for user ID:', userId);
