@@ -325,6 +325,21 @@ app.put('/api/password/:id', async (req, res) => {
   }
 });
 
+app.get('/api/admins', async (req, res) => {
+  try {
+    const admins = await adminPrisma.admins.findMany({
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+    res.json(admins);
+  } catch (error) {
+    console.error('Failed to fetch admins:', error);
+    res.status(500).json({ error: 'Failed to fetch admins' });
+  }
+});
+
 app.post('/admin/register', async (req, res) => {
   const { email, password } = req.body;
 

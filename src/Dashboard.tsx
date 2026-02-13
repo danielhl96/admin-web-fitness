@@ -171,6 +171,40 @@ async function handleLockToggleApi(
   }
 }
 
+async function handleAdminCreateApi(
+  email: string,
+  password: string,
+  onSuccess?: () => Promise<void> | void
+): Promise<AxiosResponse<any> | void> {
+  try {
+    const response = await axios.post(
+      'http://localhost:3000/admin/register',
+      { email, password },
+      { withCredentials: true }
+    );
+    console.log('Server response:', response.data);
+    if (onSuccess) await onSuccess();
+    return response;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        console.error(
+          'Server Error:',
+          error.response.status,
+          error.response.data
+        );
+      } else if (error.request) {
+        console.error('Network Error:', error.request);
+      } else {
+        console.error('Request Error:', error.message);
+      }
+    } else {
+      console.error(error);
+    }
+    throw error;
+  }
+}
+
 async function GeneratePassword() {
   try {
     const response = await axios.get(
@@ -342,6 +376,81 @@ function ModalAccountAdd({
             border="#FF0000"
           >
             Cancel
+          </Button>
+        </div>
+      </div>
+    </TemplateModal>
+  );
+}
+
+interface ModalforAdminProps {
+  onClose: () => void;
+  email?: string;
+  password?: string;
+  errorEmail?: (hasError: boolean) => void;
+  errorPassword?: (hasError: boolean) => void;
+  onPasswordChange?: (value: string) => void;
+  onEmailChange?: (value: string) => void;
+  emailHasError?: boolean;
+  passwordHasError?: boolean;
+}
+
+function ModalforAdmin({
+  onClose,
+  email,
+  password,
+  errorEmail,
+  errorPassword,
+  onPasswordChange,
+  onEmailChange,
+  emailHasError,
+  passwordHasError,
+}: ModalforAdminProps) {
+  return (
+    <TemplateModal title="Create Admin Account">
+      <div className="flex flex-col gap-2 justify-center mt-4">
+        <EmailInput
+          value={email || ''}
+          onChange={(e) => onEmailChange && onEmailChange(e)}
+          onError={errorEmail}
+        />
+        <PasswordInput
+          value={password || ''}
+          onChange={(e) => onPasswordChange && onPasswordChange(e)}
+          placeholder="Admin Password"
+          onError={errorPassword}
+        />
+        <Button
+          onClick={async () => {
+            const generated = await GeneratePassword();
+            onPasswordChange && onPasswordChange(generated);
+          }}
+          w="sm:w-28 w-28"
+          border="#3B82F6"
+        >
+          <>
+            <FaKey size={16} className="mr-1" /> Generate
+          </>
+        </Button>
+        <div className="divider divider-primary"></div>
+        <div className="flex flex-row gap-2 justify-center mt-4">
+          <Button
+            onClick={async () => {
+              try {
+                await handleAdminCreateApi(email || '', password || '');
+                if (onClose) onClose();
+              } catch (err) {
+                console.error('Create admin account failed', err);
+              }
+            }}
+            disabled={emailHasError || passwordHasError || !email || !password}
+            w="sm:w-auto w-12"
+            border="#3B82F6"
+          >
+            Create
+          </Button>
+          <Button w="sm:w-auto w-12" border="#FF0000" onClick={onClose}>
+            X
           </Button>
         </div>
       </div>
@@ -614,6 +723,12 @@ interface Exercises {
 interface WorkoutPlans {
   id: number;
 }
+
+interface Admin {
+  id: number;
+  email: string;
+}
+
 function Dashboard() {
   const [users, setUsers] = useState<User[]>([]);
   const [exercises, setExercises] = useState<Exercises[]>([]);
@@ -630,6 +745,8 @@ function Dashboard() {
     useState<boolean>(false);
   const [emailError, setEmailError] = useState<boolean>(false);
   const [isAddingAccount, setIsAddingAccount] = useState<boolean>(false);
+  const [isAdminView, setIsAdminView] = useState<boolean>(false);
+  const [admins, setAdmins] = useState<Admin[]>([]);
 
   const handleEmailChange = useCallback((value: string) => {
     setEmail(value);
@@ -674,6 +791,20 @@ function Dashboard() {
       }
     }
   }, []);
+
+  function AdminCard(admin: Admin, onView: () => void) {
+    return (
+      <div className="card w-56 bg-black/10 backdrop-blur-md border border-white/20 shadow-xl">
+        <h2 className="text-center text-blue-500">Admin</h2>
+        <p className="text-center text-xs">Mail: {admin.email}</p>
+        <div className="flex flex-row gap-2 m-2 items-center justify-center">
+          <Button onClick={onView} w="w-11" border="#3B82F6">
+            <FaEye size={20} />
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   function UserCard(user: User, onView: () => void) {
     return (
@@ -786,9 +917,32 @@ function Dashboard() {
     fetchUsers();
   }, [fetchUsers]);
 
+  useEffect(() => {
+    axios
+      .get<Admin[]>('http://localhost:3000/api/admins', {
+        withCredentials: true,
+      })
+      .then((response: AxiosResponse<Admin[]>) => {
+        setAdmins(response.data);
+      })
+      .catch((error: AxiosError) => {
+        if (error.response) {
+          console.error(
+            'Server Error:',
+            error.response.status,
+            error.response.data
+          );
+        } else if (error.request) {
+          console.error('Network Error:', error.request);
+        } else {
+          console.error('Request Error:', error.message);
+        }
+      });
+  }, [isAdminView]);
+
   return (
     <div className="min-h-[100dvh] bg-gradient-to-b from-gray-900 to-black ">
-      <Header />
+      <Header setIsAdminView={setIsAdminView} />
       <div className="items-center justify-center  flex flex-col pt-5">
         <div className="grid grid-cols-1 gap-3 lg:gap-2 py-2 lg:grid-cols-3 items-center justify-center px-3 lg:px-2 overflow-y-auto max-h-screen">
           <TemplateCards title="User Management">
@@ -811,6 +965,32 @@ function Dashboard() {
                 <div key={u.id || index} className="mb-2">
                   {UserCard(u, () => {
                     setSelectedUser(u);
+                    setIsModalOpen(true);
+                  })}
+                </div>
+              ))}
+            </div>
+          </TemplateCards>
+
+          <TemplateCards title="Admin overview">
+            <div className="flex top-0 left-0 w-full justify-end mb-0">
+              <Button
+                onClick={() => {
+                  setIsAdminView(true);
+                }}
+                w="sm:w-auto w-10"
+                border="#3B82F6"
+              >
+                <FaPlus size={12} />
+              </Button>
+            </div>
+            <div className="divider divider-primary">
+              Registered Admins: {admins.length}
+            </div>
+            <div className="flex flex-col items-center space-y-2 w-full overflow-y-auto max-h-[20dvh] lg:max-h-[50dvh]">
+              {admins.map((a, index) => (
+                <div key={a.id || index} className="mb-2">
+                  {AdminCard(a, () => {
                     setIsModalOpen(true);
                   })}
                 </div>
@@ -899,6 +1079,19 @@ function Dashboard() {
           emailHasError={emailError}
           passwordHasError={passwordError}
           confirmPasswordHasError={confirmPasswordError}
+        />
+      )}
+      {isAdminView && (
+        <ModalforAdmin
+          onEmailChange={handleEmailChange}
+          onPasswordChange={handlePasswordChange}
+          onClose={() => setIsAdminView(false)}
+          errorEmail={(error) => setEmailError(error)}
+          errorPassword={(error) => setPasswordError(error)}
+          emailHasError={emailError}
+          passwordHasError={passwordError}
+          email={Email}
+          password={Password}
         />
       )}
     </div>

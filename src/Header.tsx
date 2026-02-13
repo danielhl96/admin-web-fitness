@@ -1,4 +1,8 @@
-function Header() {
+function Header({
+  setIsAdminView,
+}: {
+  setIsAdminView: (value: boolean) => void;
+}) {
   return (
     <div className="navbar  bg-black shadow-sm">
       <div className="navbar-start">
@@ -28,8 +32,9 @@ function Header() {
               <a>Dashboard</a>
             </li>
             <li>
-              <a>Settings</a>
+              <a onClick={() => setIsAdminView(true)}>Create Admin</a>
             </li>
+
             <li>
               <a>Logout</a>
             </li>
