@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x", "darwin-arm64"]
 }
 
@@ -71,6 +71,7 @@ model users {
   goal                 String?                @db.VarChar
   bmi                  Float?
   calories             Int?
+  locked               Boolean                @default(false)
   exercises            exercises[]
   history_body_metrics history_body_metrics[]
   meals                meals[]

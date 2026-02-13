@@ -4,7 +4,15 @@ import React, { useCallback } from 'react';
 import { useEffect, useState } from 'react';
 import axios, { AxiosResponse, AxiosError } from 'axios';
 import Button from './Button.tsx';
-import { FaEye, FaEdit, FaTrash, FaLock, FaPlus, FaKey } from 'react-icons/fa';
+import {
+  FaEye,
+  FaEdit,
+  FaTrash,
+  FaLock,
+  FaUnlock,
+  FaPlus,
+  FaKey,
+} from 'react-icons/fa';
 
 import EmailInput from './emailinput.tsx';
 import PasswordInput from './passwordinput.tsx';
@@ -108,6 +116,40 @@ async function handleAccountDeleteApi(
     );
     console.log('Server response:', response.data);
     if (setModalOpen) setModalOpen(false);
+    return response;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        console.error(
+          'Server Error:',
+          error.response.status,
+          error.response.data
+        );
+      } else if (error.request) {
+        console.error('Network Error:', error.request);
+      } else {
+        console.error('Request Error:', error.message);
+      }
+    } else {
+      console.error(error);
+    }
+    throw error;
+  }
+}
+
+async function handleLockToggleApi(
+  userId: number,
+  locked: boolean,
+  onSuccess?: () => Promise<void> | void
+): Promise<AxiosResponse<any> | void> {
+  try {
+    const response = await axios.put(
+      `http://localhost:3000/api/user_lock/${userId}`,
+      { locked },
+      { withCredentials: true }
+    );
+    console.log('Server response:', response.data);
+    if (onSuccess) await onSuccess();
     return response;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -542,6 +584,7 @@ interface User {
   hip: number; // in cm
   bmi: number; // body mass index
   calories: number; // daily caloric needs
+  locked: boolean;
 }
 
 interface Meal {
@@ -662,8 +705,31 @@ function Dashboard() {
           >
             <FaTrash size={20} />
           </Button>
-          <Button w="w-11" border="#3B82F6">
-            <FaLock size={20} />
+          <Button
+            onClick={async () => {
+              const updatedLockedStatus = !user.locked;
+              console.log(
+                `Toggling lock status for user ID ${user.id} to ${updatedLockedStatus}`
+              );
+
+              try {
+                await handleLockToggleApi(
+                  user.id,
+                  updatedLockedStatus,
+                  fetchUsers
+                );
+                setSelectedUser({
+                  ...user,
+                  locked: updatedLockedStatus,
+                });
+              } catch (error) {
+                console.error('Failed to update lock status:', error);
+              }
+            }}
+            w="w-11"
+            border="#3B82F6"
+          >
+            {user.locked ? <FaLock size={20} /> : <FaUnlock size={20} />}
           </Button>
         </div>
       </div>

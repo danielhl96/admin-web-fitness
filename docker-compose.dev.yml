@@ -28,6 +28,7 @@ services:
       - ./backend/.env
     environment:
       - NODE_ENV=development
+      - ADMIN_DATABASE_URL=postgresql://admin:admin@database_admin:5433/fitness_admin
   database:
     image: postgres:15
     container_name: admin-web-fitness-database-dev

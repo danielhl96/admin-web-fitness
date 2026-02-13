@@ -166,6 +166,28 @@ app.post('/api/user', async (req, res) => {
   }
 });
 
+app.put('/api/user_lock/:id', async (req, res) => {
+  const userId = parseInt(req.params.id);
+  console.log('Received lock/unlock request for user ID:', userId);
+  const { locked } = req.body;
+
+  if (typeof locked !== 'boolean') {
+    return res.status(400).json({ error: 'Locked status must be a boolean' });
+  }
+
+  try {
+    const updatedUser = await prisma.users.update({
+      where: { id: userId },
+      data: { locked },
+    });
+
+    res.status(200).json('User lock status updated successfully');
+  } catch (error) {
+    console.error('User lock status update failed:', error);
+    res.status(500).json({ error: 'Failed to update user lock status' });
+  }
+});
+
 app.delete('/api/user/:id', async (req, res) => {
   const userId = parseInt(req.params.id);
   console.log('Received delete request for user ID:', userId);
