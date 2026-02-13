@@ -121,7 +121,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/danielhennies/Documents/admin-web-fitness/backend/prisma-client-admin",
+      "value": "/app/prisma-client-admin",
       "fromEnvVar": null
     },
     "config": {
@@ -130,7 +130,7 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "darwin-arm64",
+        "value": "linux-musl-arm64-openssl-3.0.x",
         "native": true
       },
       {
@@ -147,11 +147,11 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/danielhennies/Documents/admin-web-fitness/backend/prisma/schema.admin.prisma",
+    "sourceFilePath": "/app/prisma/schema.admin.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": "../.env",
+    "rootEnvPath": null,
     "schemaEnvPath": "../.env"
   },
   "relativePath": "../prisma",
@@ -161,7 +161,6 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {

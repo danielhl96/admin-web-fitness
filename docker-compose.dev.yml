@@ -28,19 +28,21 @@ services:
       - ./backend/.env
     environment:
       - NODE_ENV=development
-      - ADMIN_DATABASE_URL=postgresql://admin:admin@database_admin:5433/fitness_admin
-  database:
+      - ADMIN_DATABASE_URL=postgresql://admin:admin@database_admin:5432/fitness_admin
+    depends_on:
+      - database_admin
+  database_admin:
     image: postgres:15
-    container_name: admin-web-fitness-database-dev
+    container_name: admin-web-fitness-database-admin-dev
     ports:
-      - '5432:5432'
+      - '5433:5432'
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
-      - POSTGRES_DB=fitness_db
+      - POSTGRES_DB=fitness_admin
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - db_admin_data:/var/lib/postgresql/data
 
 volumes:
-  db_data:
+  db_admin_data:
     driver: local

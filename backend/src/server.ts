@@ -6,9 +6,13 @@ import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
 import argon2 from 'argon2';
 import generate from 'generate-password';
+import jwt from 'jsonwebtoken';
+import cookieParser from 'cookie-parser';
+import { adminPrisma } from './prisma/adminPrisma';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const prisma = new PrismaClient();
 
 // Security middleware
@@ -24,6 +28,9 @@ app.use(limiter);
 
 // Logging middleware
 app.use(morgan('combined'));
+
+// Cookie parser middleware
+app.use(cookieParser());
 
 // CORS middleware
 app.use(
@@ -42,6 +49,28 @@ app.use(
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Middleware to verify admin JWT
+const verifyAdmin = (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  const token = req.cookies.admin_token;
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      adminId: number;
+      email: string;
+    };
+    (req as any).admin = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+};
 
 // Connect to database
 async function main() {
@@ -296,6 +325,88 @@ app.put('/api/password/:id', async (req, res) => {
   }
 });
 
+app.post('/admin/register', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
+
+  try {
+    const hashedPassword = await argon2.hash(password, {
+      timeCost: 3,
+      memoryCost: 256,
+      parallelism: 4,
+      hashLength: 32,
+      saltLength: 16,
+      type: argon2.argon2id,
+    });
+
+    const newAdmin = await adminPrisma.admins.create({
+      data: {
+        email,
+        password: hashedPassword,
+      },
+    });
+
+    res.status(201).json(newAdmin);
+  } catch (error) {
+    console.error('Admin registration failed:', error);
+    res.status(500).json({ error: 'Failed to register admin' });
+  }
+});
+
+app.post('/admin/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
+
+  try {
+    const admin = await adminPrisma.admins.findUnique({
+      where: { email },
+    });
+
+    if (!admin) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    const validPassword = await argon2.verify(admin.password, password);
+
+    if (!validPassword) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { adminId: admin.id, email: admin.email },
+      JWT_SECRET,
+      {
+        expiresIn: '20m',
+      }
+    );
+
+    // Set secure HTTP-only cookie
+    res.cookie('admin_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Secure in production
+      sameSite: 'strict',
+      maxAge: 20 * 60 * 1000, // 20 minutes
+    });
+
+    res.status(200).json({ message: 'Login successful' });
+  } catch (error) {
+    console.error('Admin login failed:', error);
+    res.status(500).json({ error: 'Failed to login' });
+  }
+});
+
+app.post('/admin/logout', (req, res) => {
+  res.clearCookie('admin_token');
+  res.status(200).json({ message: 'Logout successful' });
+});
+
 // Error handling middleware
 app.use(
   (
@@ -314,6 +425,34 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
+  adminPrisma
+    .$connect()
+    .then(() => {
+      console.log('Admin Prisma connected');
+    })
+    .catch((error) => {
+      console.error('Admin Prisma connection failed:', error);
+    });
+  const admin = await adminPrisma.admins.findFirst();
+  console.log('Admin user check completed: ');
+
+  if (!admin) {
+    const defaultAdminPassword = 'admin123';
+    const hashedPassword = await argon2.hash(defaultAdminPassword, {
+      timeCost: 3,
+      memoryCost: 256,
+      parallelism: 4,
+      hashLength: 32,
+      saltLength: 16,
+      type: argon2.argon2id,
+    });
+    await adminPrisma.admins.create({
+      data: {
+        email: 'masteradmin@admin.de',
+        password: hashedPassword,
+      },
+    });
+  }
 });

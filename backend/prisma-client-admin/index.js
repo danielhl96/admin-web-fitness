@@ -122,7 +122,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/danielhennies/Documents/admin-web-fitness/backend/prisma-client-admin",
+      "value": "/app/prisma-client-admin",
       "fromEnvVar": null
     },
     "config": {
@@ -131,7 +131,7 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "darwin-arm64",
+        "value": "linux-musl-arm64-openssl-3.0.x",
         "native": true
       },
       {
@@ -148,11 +148,11 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/danielhennies/Documents/admin-web-fitness/backend/prisma/schema.admin.prisma",
+    "sourceFilePath": "/app/prisma/schema.admin.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": "../.env",
+    "rootEnvPath": null,
     "schemaEnvPath": "../.env"
   },
   "relativePath": "../prisma",
@@ -162,7 +162,6 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
@@ -210,16 +209,16 @@ exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
 
 // file annotations for bundling tools to include these files
-path.join(__dirname, "libquery_engine-darwin-arm64.dylib.node");
-path.join(process.cwd(), "prisma-client-admin/libquery_engine-darwin-arm64.dylib.node")
+path.join(__dirname, "libquery_engine-linux-musl-arm64-openssl-3.0.x.so.node");
+path.join(process.cwd(), "prisma-client-admin/libquery_engine-linux-musl-arm64-openssl-3.0.x.so.node")
 
 // file annotations for bundling tools to include these files
 path.join(__dirname, "libquery_engine-linux-musl-openssl-3.0.x.so.node");
 path.join(process.cwd(), "prisma-client-admin/libquery_engine-linux-musl-openssl-3.0.x.so.node")
 
 // file annotations for bundling tools to include these files
-path.join(__dirname, "libquery_engine-linux-musl-arm64-openssl-3.0.x.so.node");
-path.join(process.cwd(), "prisma-client-admin/libquery_engine-linux-musl-arm64-openssl-3.0.x.so.node")
+path.join(__dirname, "libquery_engine-darwin-arm64.dylib.node");
+path.join(process.cwd(), "prisma-client-admin/libquery_engine-darwin-arm64.dylib.node")
 // file annotations for bundling tools to include these files
 path.join(__dirname, "schema.prisma");
 path.join(process.cwd(), "prisma-client-admin/schema.prisma")
