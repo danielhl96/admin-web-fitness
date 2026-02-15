@@ -27,7 +27,8 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.1",
-    "pg": "^8.18.0"
+    "pg": "^8.18.0",
+    "react-router": "^7.13.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.0",

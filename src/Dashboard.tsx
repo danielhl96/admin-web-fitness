@@ -137,6 +137,38 @@ async function handleAccountDeleteApi(
   }
 }
 
+async function handleAdminDeleteApi(
+  adminId: number,
+  setModalOpen?: (open: boolean) => void
+): Promise<AxiosResponse<any> | void> {
+  try {
+    const response = await axios.delete(
+      `http://localhost:3000/api/admins/delete/${adminId}`,
+      { withCredentials: true }
+    );
+    console.log('Server response:', response.data);
+    if (setModalOpen) setModalOpen(false);
+    return response;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        console.error(
+          'Server Error:',
+          error.response.status,
+          error.response.data
+        );
+      } else if (error.request) {
+        console.error('Network Error:', error.request);
+      } else {
+        console.error('Request Error:', error.message);
+      }
+    } else {
+      console.error(error);
+    }
+    throw error;
+  }
+}
+
 async function handleLockToggleApi(
   userId: number,
   locked: boolean,
@@ -503,6 +535,50 @@ function ModalAccountDelete({
   );
 }
 
+function ModalAdminDelete({
+  setDeleting,
+  selectedAdmin,
+  onSaved,
+}: {
+  setDeleting: (deleting: boolean) => void;
+  selectedAdmin: Admin | null;
+  onSaved?: () => Promise<void> | void;
+}) {
+  return (
+    <TemplateModal title="Delete Admin Account">
+      <div className="divider divider-primary"></div>
+      <p className="text-white text-center break-words">
+        Are you sure you want to delete the admin account with following email:{' '}
+        {selectedAdmin?.email}? This action cannot be undone.
+      </p>
+      <div className="divider divider-primary"></div>
+      <div className="flex flex-row gap-2 justify-center mt-4">
+        <Button
+          onClick={async () => {
+            try {
+              await handleAdminDeleteApi(selectedAdmin?.id, setDeleting);
+              if (onSaved) await onSaved();
+            } catch (err) {
+              console.error('Delete admin account failed', err);
+            }
+          }}
+          w="sm:w-auto w-12"
+          border="#FF0000"
+        >
+          Delete
+        </Button>
+        <Button
+          onClick={() => setDeleting(false)}
+          w="sm:w-auto w-12"
+          border="#3B82F6"
+        >
+          Cancel
+        </Button>
+      </div>
+    </TemplateModal>
+  );
+}
+
 interface ModalPasswordChangeProps {
   email: string;
   password: string;
@@ -726,6 +802,7 @@ interface WorkoutPlans {
 
 interface Admin {
   id: number;
+  masterid: boolean;
   email: string;
 }
 
@@ -747,6 +824,8 @@ function Dashboard() {
   const [isAddingAccount, setIsAddingAccount] = useState<boolean>(false);
   const [isAdminView, setIsAdminView] = useState<boolean>(false);
   const [admins, setAdmins] = useState<Admin[]>([]);
+  const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
+  const [isAdminDeleting, setIsAdminDeleting] = useState<boolean>(false);
 
   const handleEmailChange = useCallback((value: string) => {
     setEmail(value);
@@ -792,14 +871,50 @@ function Dashboard() {
     }
   }, []);
 
+  const fetchAdmins = useCallback(async () => {
+    try {
+      const response = await axios.get<Admin[]>(
+        'http://localhost:3000/api/admins',
+        {
+          withCredentials: true,
+        }
+      );
+      setAdmins(response.data);
+      console.log('Fetched admins:', response.data);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          console.error(
+            'Server Error:',
+            error.response.status,
+            error.response.data
+          );
+        } else if (error.request) {
+          console.error('Network Error:', error.request);
+        } else {
+          console.error('Request Error:', error.message);
+        }
+      } else {
+        console.error(error);
+      }
+    }
+  }, []);
+
   function AdminCard(admin: Admin, onView: () => void) {
     return (
       <div className="card w-56 bg-black/10 backdrop-blur-md border border-white/20 shadow-xl">
         <h2 className="text-center text-blue-500">Admin</h2>
         <p className="text-center text-xs">Mail: {admin.email}</p>
         <div className="flex flex-row gap-2 m-2 items-center justify-center">
-          <Button onClick={onView} w="w-11" border="#3B82F6">
-            <FaEye size={20} />
+          <Button
+            onClick={() => {
+              setIsAdminDeleting(true);
+              setSelectedAdmin(admin);
+            }}
+            w="w-11"
+            border="#3B82F6"
+          >
+            <FaTrash size={20} />
           </Button>
         </div>
       </div>
@@ -918,33 +1033,14 @@ function Dashboard() {
   }, [fetchUsers]);
 
   useEffect(() => {
-    axios
-      .get<Admin[]>('http://localhost:3000/api/admins', {
-        withCredentials: true,
-      })
-      .then((response: AxiosResponse<Admin[]>) => {
-        setAdmins(response.data);
-      })
-      .catch((error: AxiosError) => {
-        if (error.response) {
-          console.error(
-            'Server Error:',
-            error.response.status,
-            error.response.data
-          );
-        } else if (error.request) {
-          console.error('Network Error:', error.request);
-        } else {
-          console.error('Request Error:', error.message);
-        }
-      });
-  }, [isAdminView]);
+    fetchAdmins();
+  }, [fetchAdmins]);
 
   return (
     <div className="min-h-[100dvh] bg-gradient-to-b from-gray-900 to-black ">
       <Header setIsAdminView={setIsAdminView} />
-      <div className="items-center justify-center  flex flex-col pt-5">
-        <div className="grid grid-cols-1 gap-3 lg:gap-2 py-2 lg:grid-cols-3 items-center justify-center px-3 lg:px-2 overflow-y-auto max-h-screen">
+      <div className="items-center justify-center  flex flex-col pt-10 px-3 lg:px-2">
+        <div className="grid grid-cols-1 gap-3 lg:gap-2 py-2 lg:grid-cols-3 items-center justify-center overflow-y-auto max-h-[95dvh]  px-3 lg:px-2 ">
           <TemplateCards title="User Management">
             <div className="flex top-0 left-0 w-full justify-end mb-0">
               <Button
@@ -1092,6 +1188,17 @@ function Dashboard() {
           passwordHasError={passwordError}
           email={Email}
           password={Password}
+        />
+      )}
+
+      {isAdminDeleting && selectedAdmin && (
+        <ModalAdminDelete
+          setDeleting={setIsAdminDeleting}
+          selectedAdmin={selectedAdmin}
+          onSaved={() => {
+            setSelectedAdmin(null);
+            fetchAdmins();
+          }}
         />
       )}
     </div>

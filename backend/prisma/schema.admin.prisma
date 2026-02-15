@@ -13,4 +13,5 @@ model admins {
   id                   Int                    @id @default(autoincrement())
   email                String                 @unique @db.VarChar
   password             String                 @db.VarChar
+  masterid             Boolean                @default(false)
 }

@@ -13,6 +13,8 @@ import { adminPrisma } from './prisma/adminPrisma';
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const prisma = new PrismaClient();
 
 // Security middleware
@@ -325,12 +327,31 @@ app.put('/api/password/:id', async (req, res) => {
   }
 });
 
+app.delete('/api/admins/delete/:id', async (req, res) => {
+  const adminId = parseInt(req.params.id);
+  console.log('Received delete request for admin ID:', adminId);
+
+  const admin = await adminPrisma.admins.findUnique({ where: { id: adminId } });
+  if (admin?.masterid === true) {
+    return res.status(403).json({ error: 'Cannot delete master admin' });
+  }
+
+  try {
+    await adminPrisma.admins.delete({ where: { id: adminId } });
+    res.status(200).json('Admin deleted successfully');
+  } catch (error) {
+    console.error('Admin deletion failed:', error);
+    res.status(500).json({ error: 'Failed to delete admin' });
+  }
+});
+
 app.get('/api/admins', async (req, res) => {
   try {
     const admins = await adminPrisma.admins.findMany({
       select: {
         id: true,
         email: true,
+        masterid: true,
       },
     });
     res.json(admins);
@@ -450,12 +471,13 @@ app.listen(PORT, async () => {
     .catch((error) => {
       console.error('Admin Prisma connection failed:', error);
     });
-  const admin = await adminPrisma.admins.findFirst();
-  console.log('Admin user check completed: ');
+  const admin = await adminPrisma.admins.findFirst({
+    where: { masterid: true },
+  });
+  console.log('Admin user check completed: ', admin);
 
   if (!admin) {
-    const defaultAdminPassword = 'admin123';
-    const hashedPassword = await argon2.hash(defaultAdminPassword, {
+    const hashedPassword = await argon2.hash(ADMIN_PASSWORD, {
       timeCost: 3,
       memoryCost: 256,
       parallelism: 4,
@@ -465,8 +487,9 @@ app.listen(PORT, async () => {
     });
     await adminPrisma.admins.create({
       data: {
-        email: 'masteradmin@admin.de',
+        email: ADMIN_EMAIL,
         password: hashedPassword,
+        masterid: true,
       },
     });
   }
