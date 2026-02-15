@@ -210,7 +210,7 @@ async function handleAdminCreateApi(
 ): Promise<AxiosResponse<any> | void> {
   try {
     const response = await axios.post(
-      'http://localhost:3000/admin/register',
+      'http://localhost:3000/admins/register',
       { email, password },
       { withCredentials: true }
     );

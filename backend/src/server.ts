@@ -58,6 +58,7 @@ const verifyAdmin = (
   res: express.Response,
   next: express.NextFunction
 ) => {
+  console.log('Verifying admin authentication...');
   const token = req.cookies.admin_token;
   if (!token) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -138,7 +139,7 @@ app.get('/api/meals', async (req, res, next) => {
   }
 });
 
-app.get('/api/createPassword', async (req, res, next) => {
+app.get('/api/createPassword', verifyAdmin, async (req, res, next) => {
   console.log('Received request to generate password');
   try {
     const password = generate.generate({
@@ -154,7 +155,7 @@ app.get('/api/createPassword', async (req, res, next) => {
   }
 });
 
-app.get('/api/profile/:id', async (req, res) => {
+app.get('/api/profile/:id', verifyAdmin, async (req, res) => {
   const userId = parseInt(req.params.id);
   try {
     const userProfile = await prisma.users.findUnique({
@@ -166,7 +167,7 @@ app.get('/api/profile/:id', async (req, res) => {
   }
 });
 
-app.post('/api/user', async (req, res) => {
+app.post('/api/user', verifyAdmin, async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -197,7 +198,7 @@ app.post('/api/user', async (req, res) => {
   }
 });
 
-app.put('/api/user_lock/:id', async (req, res) => {
+app.put('/api/user_lock/:id', verifyAdmin, async (req, res) => {
   const userId = parseInt(req.params.id);
   console.log('Received lock/unlock request for user ID:', userId);
   const { locked } = req.body;
@@ -219,7 +220,7 @@ app.put('/api/user_lock/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/user/:id', async (req, res) => {
+app.delete('/api/user/:id', verifyAdmin, async (req, res) => {
   const userId = parseInt(req.params.id);
   console.log('Received delete request for user ID:', userId);
 
@@ -272,7 +273,7 @@ app.delete('/api/user/:id', async (req, res) => {
   }
 });
 
-app.put('/api/email/:id', async (req, res) => {
+app.put('/api/email/:id', verifyAdmin, async (req, res) => {
   const userId = parseInt(req.params.id);
   console.log('Received email update request for user ID:', userId);
   const { email } = req.body;
@@ -294,7 +295,7 @@ app.put('/api/email/:id', async (req, res) => {
   }
 });
 
-app.put('/api/password/:id', async (req, res) => {
+app.put('/api/password/:id', verifyAdmin, async (req, res) => {
   const userId = parseInt(req.params.id);
   console.log('Received password update request for user ID:', userId);
   console.log('Request body:', req.body);
@@ -327,7 +328,7 @@ app.put('/api/password/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/admins/delete/:id', async (req, res) => {
+app.delete('/api/admins/delete/:id', verifyAdmin, async (req, res) => {
   const adminId = parseInt(req.params.id);
   console.log('Received delete request for admin ID:', adminId);
 
@@ -345,7 +346,7 @@ app.delete('/api/admins/delete/:id', async (req, res) => {
   }
 });
 
-app.get('/api/admins', async (req, res) => {
+app.get('/api/admins', verifyAdmin, async (req, res) => {
   try {
     const admins = await adminPrisma.admins.findMany({
       select: {
@@ -361,7 +362,7 @@ app.get('/api/admins', async (req, res) => {
   }
 });
 
-app.post('/admin/register', async (req, res) => {
+app.post('/admins/register', verifyAdmin, async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -392,7 +393,7 @@ app.post('/admin/register', async (req, res) => {
   }
 });
 
-app.post('/admin/login', async (req, res) => {
+app.post('/admins/login', async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -425,7 +426,7 @@ app.post('/admin/login', async (req, res) => {
 
     // Set secure HTTP-only cookie
     res.cookie('admin_token', token, {
-      httpOnly: true,
+      httpOnly: false,
       secure: process.env.NODE_ENV === 'production', // Secure in production
       sameSite: 'strict',
       maxAge: 20 * 60 * 1000, // 20 minutes
@@ -438,9 +439,34 @@ app.post('/admin/login', async (req, res) => {
   }
 });
 
-app.post('/admin/logout', (req, res) => {
+app.post('/admins/logout', (req, res) => {
   res.clearCookie('admin_token');
   res.status(200).json({ message: 'Logout successful' });
+});
+
+app.get('/admins/check_auth', verifyAdmin, (req, res) => {
+  res.status(200).json({ authenticated: true });
+});
+
+app.post('/admins/refresh_token', verifyAdmin, (req, res) => {
+  // Issue a new token
+  const admin = (req as any).admin;
+  const token = jwt.sign(
+    { adminId: admin.adminId, email: admin.email },
+    JWT_SECRET,
+    {
+      expiresIn: '20m',
+    }
+  );
+
+  res.cookie('admin_token', token, {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 20 * 60 * 1000,
+  });
+
+  res.status(200).json({ valid: true });
 });
 
 // Error handling middleware

@@ -7,10 +7,11 @@ import { useNavigate } from 'react-router-dom';
 import Header from './HeaderLogout';
 
 function LoginPage() {
+  const navigate = useNavigate();
   async function login(email: string, password: string) {
     try {
       const response = await axios.post(
-        'http://localhost:3000/admin/login',
+        'http://localhost:3000/admins/login',
         {
           email,
           password,
@@ -22,8 +23,10 @@ function LoginPage() {
           withCredentials: true,
         }
       );
+
       console.log('Login successful:', response.data);
       setErrorMessage(response.data.message || 'Login successful');
+      navigate('/dashboard');
       return response.data;
     } catch (error) {
       console.error('Login failed:', error);
@@ -34,7 +37,6 @@ function LoginPage() {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const navigate = useNavigate();
 
   return (
     <>
@@ -51,6 +53,7 @@ function LoginPage() {
               onClick={async () => {
                 try {
                   await login(email, password);
+
                   navigate('/dashboard');
                 } catch (err) {
                   // Error is handled in login function

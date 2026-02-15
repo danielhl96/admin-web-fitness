@@ -1,8 +1,4 @@
-function Header({
-  setIsAdminView,
-}: {
-  setIsAdminView: (value: boolean) => void;
-}) {
+function Header({}: {}) {
   return (
     <div className="navbar  bg-black shadow-sm">
       <div className="navbar-center w-full items-center justify-center">

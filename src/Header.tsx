@@ -1,8 +1,27 @@
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 function Header({
   setIsAdminView,
 }: {
   setIsAdminView: (value: boolean) => void;
 }) {
+  const navigate = useNavigate();
+  async function logout() {
+    console.log('Logging out...');
+    try {
+      await axios.post(
+        'http://localhost:3000/admins/logout',
+        {},
+        { withCredentials: true }
+      );
+      console.log('Logout successful');
+      setIsAdminView(false);
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  }
+
   return (
     <div className="navbar  bg-black shadow-sm">
       <div className="navbar-start">
@@ -36,7 +55,7 @@ function Header({
             </li>
 
             <li>
-              <a>Logout</a>
+              <a onClick={() => logout()}>Logout</a>
             </li>
           </ul>
         </div>
@@ -45,7 +64,7 @@ function Header({
         <a className="btn btn-ghost text-xl">Administration</a>
       </div>
       <div className="navbar-end">
-        <button className="btn btn-ghost btn-circle">
+        <button onClick={() => logout()} className="btn btn-ghost btn-circle">
           <div className="indicator">
             <svg
               xmlns="http://www.w3.org/2000/svg"
