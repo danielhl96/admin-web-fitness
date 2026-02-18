@@ -29,8 +29,7 @@ function LoginPage() {
       navigate('/dashboard');
       return response.data;
     } catch (error) {
-      console.error('Login failed:', error);
-      setErrorMessage(error.message || 'Login failed');
+      setErrorMessage('Login failed');
       throw error;
     }
   }

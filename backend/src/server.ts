@@ -104,7 +104,7 @@ process.on('SIGINT', async () => {
 app.get('/api/users', async (req, res, next) => {
   try {
     const users = await prisma.users.findMany();
-    res.json(users);
+    res.json({ users: users });
   } catch (error) {
     next(error); // Pass error to error handling middleware
   }
@@ -119,7 +119,7 @@ app.get('/api/exercises', async (req, res, next) => {
         workout_plans: true,
       },
     });
-    res.json(exercises);
+    res.json({ exercises: exercises });
   } catch (error) {
     next(error);
   }
@@ -133,7 +133,7 @@ app.get('/api/meals', async (req, res, next) => {
         users: true,
       },
     });
-    res.json(meals);
+    res.json({ meals: meals });
   } catch (error) {
     next(error);
   }
@@ -213,7 +213,7 @@ app.put('/api/user_lock/:id', verifyAdmin, async (req, res) => {
       data: { locked },
     });
 
-    res.status(200).json('User lock status updated successfully');
+    res.status(200).json({ message: 'User lock status updated successfully' });
   } catch (error) {
     console.error('User lock status update failed:', error);
     res.status(500).json({ error: 'Failed to update user lock status' });
@@ -266,7 +266,7 @@ app.delete('/api/user/:id', verifyAdmin, async (req, res) => {
 
   try {
     await prisma.users.delete({ where: { id: userId } });
-    res.status(200).json('User deleted successfully');
+    res.status(200).json({ message: 'User deleted successfully' });
   } catch (error) {
     console.error('User deletion failed:', error);
     res.status(500).json({ error: 'Failed to delete user' });
@@ -288,7 +288,7 @@ app.put('/api/email/:id', verifyAdmin, async (req, res) => {
       data: { email },
     });
 
-    res.status(200).json('Email updated successfully');
+    res.status(200).json({ message: 'Email updated successfully' });
   } catch (error) {
     console.error('Email update failed:', error);
     res.status(500).json({ error: 'Failed to update email' });
@@ -321,7 +321,7 @@ app.put('/api/password/:id', verifyAdmin, async (req, res) => {
       data: { password: hashed },
     });
 
-    res.status(200).json('Password updated successfully');
+    res.status(200).json({ message: 'Password updated successfully' });
   } catch (error) {
     console.error('Password update failed:', error);
     res.status(500).json({ error: 'Failed to update password' });
@@ -339,7 +339,7 @@ app.delete('/api/admins/delete/:id', verifyAdmin, async (req, res) => {
 
   try {
     await adminPrisma.admins.delete({ where: { id: adminId } });
-    res.status(200).json('Admin deleted successfully');
+    res.status(200).json({ message: 'Admin deleted successfully' });
   } catch (error) {
     console.error('Admin deletion failed:', error);
     res.status(500).json({ error: 'Failed to delete admin' });
@@ -355,7 +355,7 @@ app.get('/api/admins', verifyAdmin, async (req, res) => {
         masterid: true,
       },
     });
-    res.json(admins);
+    res.json({ admins: admins });
   } catch (error) {
     console.error('Failed to fetch admins:', error);
     res.status(500).json({ error: 'Failed to fetch admins' });
