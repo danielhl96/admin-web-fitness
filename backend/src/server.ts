@@ -328,7 +328,7 @@ app.put('/api/password/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-app.delete('/api/admins/delete/:id', verifyAdmin, async (req, res) => {
+app.delete('/admins/delete/:id', verifyAdmin, async (req, res) => {
   const adminId = parseInt(req.params.id);
   console.log('Received delete request for admin ID:', adminId);
 
@@ -346,7 +346,7 @@ app.delete('/api/admins/delete/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-app.get('/api/admins', verifyAdmin, async (req, res) => {
+app.get('/admins/get', verifyAdmin, async (req, res) => {
   try {
     const admins = await adminPrisma.admins.findMany({
       select: {

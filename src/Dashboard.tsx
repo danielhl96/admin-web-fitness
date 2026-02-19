@@ -2,8 +2,28 @@ import Header from './Header.tsx';
 import TemplateCards from './TemplateCards.tsx';
 import React, { useCallback } from 'react';
 import { useEffect, useState } from 'react';
-import axios, { AxiosRequestConfig } from 'axios';
 import Button from './Button.tsx';
+
+import {
+  UISTATE_USERS,
+  UISTATE_ADMINS,
+  UISTATE_EXERCISES,
+  UISTATE_MEALS,
+} from './types.ts';
+import { Admin, User, Meal, Exercises, WorkoutPlans } from './types.ts';
+import {
+  handleEmailChange,
+  handlePasswordChange,
+  handleAccountDelete,
+  handleAdminDelete,
+  handleLockToggle,
+  handleAdminCreate,
+  handleGeneratePassword,
+  fetchAdmins,
+  fetchExercises,
+  fetchMeals,
+  fetchUsers,
+} from './api.ts';
 import {
   FaEye,
   FaEdit,
@@ -23,41 +43,9 @@ function isSuccessResponse<T>(
   return response.status === 'success';
 }
 
-async function apiRequest<T>(
-  method: 'get' | 'post' | 'put' | 'delete',
-  url: string,
-  data?: unknown,
-  config?: AxiosRequestConfig
-): Promise<ApiResponse<T>> {
-  try {
-    const response = await axios.request<T>({
-      method,
-      url,
-      data,
-      ...config,
-      withCredentials: true,
-    });
-    return { status: 'success', data: response.data };
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        return {
-          status: 'error',
-          message: error.response.data?.error || 'Server error',
-        };
-      } else if (error.request) {
-        return { status: 'error', message: 'Network error' };
-      } else {
-        return { status: 'error', message: error.message };
-      }
-    } else {
-      return { status: 'error', message: 'Unknown error' };
-    }
-  }
-}
-
 function getActivityLevelString(level: string | null | undefined): string {
   if (level == null) return 'N/A';
+
   switch (level) {
     case '1.2':
       return 'Not Active';
@@ -67,7 +55,6 @@ function getActivityLevelString(level: string | null | undefined): string {
       return 'Active';
     case '2.0':
       return 'Very Active';
-
     default:
       return 'Unknown';
   }
@@ -76,133 +63,6 @@ function getActivityLevelString(level: string | null | undefined): string {
 type ApiResponse<T> =
   | { status: 'success'; data: T }
   | { status: 'error'; message: string };
-
-async function handleEmailChangeApi(
-  email: string,
-  userId: number,
-  setModalOpen?: (open: boolean) => void
-): Promise<ApiResponse<{ message: string }>> {
-  const response = await apiRequest<{ message: string }>(
-    'put',
-    `http://localhost:3000/api/email/${userId}`,
-    { email }
-  );
-
-  if (isSuccessResponse(response)) {
-    console.log('Email change successful:', response.data.message);
-    setModalOpen && setModalOpen(false);
-  }
-  return response;
-}
-
-type PasswordChangeData = {
-  message: string;
-};
-
-async function handlePasswordChangeApi(
-  password: string,
-  userId: number,
-  setModalOpen?: (open: boolean) => void
-): Promise<ApiResponse<PasswordChangeData>> {
-  const result = await apiRequest<PasswordChangeData>(
-    'put',
-    `http://localhost:3000/api/password/${userId}`,
-    { password }
-  );
-
-  if (isSuccessResponse(result)) {
-    console.log('Password change successful:', result.data.message);
-    setModalOpen && setModalOpen(false);
-  } else {
-    console.error('Password change failed:', result.message);
-  }
-  return result;
-}
-
-type AccountDeleteData = {
-  message: string;
-};
-
-async function handleAccountDeleteApi(
-  userId: number,
-  setModalOpen?: (open: boolean) => void
-): Promise<ApiResponse<AccountDeleteData>> {
-  const response = await apiRequest<AccountDeleteData>(
-    'delete',
-    `http://localhost:3000/api/user/${userId}`
-  );
-
-  if (isSuccessResponse(response) && setModalOpen) setModalOpen(false);
-  return response;
-}
-
-type AdminDeleteData = {
-  message: string;
-};
-
-async function handleAdminDeleteApi(
-  adminId: number,
-  setModalOpen?: (open: boolean) => void
-): Promise<ApiResponse<AdminDeleteData>> {
-  const response = await apiRequest<AdminDeleteData>(
-    'delete',
-    `http://localhost:3000/api/admins/delete/${adminId}`
-  );
-
-  if (isSuccessResponse(response) && setModalOpen) setModalOpen(false);
-  return response;
-}
-
-type LockToggleData = {
-  message: string;
-};
-
-async function handleLockToggleApi(
-  userId: number,
-  locked: boolean,
-  onSuccess?: () => Promise<void> | void
-): Promise<ApiResponse<LockToggleData>> {
-  const response = await apiRequest<LockToggleData>(
-    'put',
-    `http://localhost:3000/api/user_lock/${userId}`,
-    { locked }
-  );
-
-  if (isSuccessResponse(response) && onSuccess) await onSuccess();
-  return response;
-}
-
-type AdminCreateData = {
-  message: string;
-  adminId: number;
-};
-
-async function handleAdminCreateApi(
-  email: string,
-  password: string,
-  onSuccess?: () => Promise<void> | void
-): Promise<ApiResponse<AdminCreateData>> {
-  const response = await apiRequest<AdminCreateData>(
-    'post',
-    'http://localhost:3000/api/admin',
-    { email, password }
-  );
-
-  if (isSuccessResponse(response) && onSuccess) await onSuccess();
-  return response;
-}
-
-type PasswordGenerateData = {
-  password: string;
-};
-
-async function GeneratePassword(): Promise<ApiResponse<PasswordGenerateData>> {
-  const response = await apiRequest<PasswordGenerateData>(
-    'get',
-    'http://localhost:3000/api/createPassword'
-  );
-  return response;
-}
 
 function getGoalString(goal: string | null | undefined): string {
   if (goal == null) return 'N/A';
@@ -296,7 +156,7 @@ function ModalAccountAdd({
         <Button
           onClick={async () => {
             console.log('Generating password...');
-            const generated = await GeneratePassword();
+            const generated = await handleGeneratePassword();
             if (isSuccessResponse(generated)) {
               console.log(generated.data.password);
               onPasswordChange(generated.data.password);
@@ -398,7 +258,7 @@ function ModalforAdmin({
         />
         <Button
           onClick={async () => {
-            const generated = await GeneratePassword();
+            const generated = await handleGeneratePassword();
             if (!isSuccessResponse(generated)) {
               console.error('Password generation failed:', generated.message);
               return;
@@ -418,7 +278,7 @@ function ModalforAdmin({
           <Button
             onClick={async () => {
               try {
-                await handleAdminCreateApi(email || '', password || '');
+                await handleAdminCreate(email || '', password || '');
                 if (onClose) onClose();
               } catch (err) {
                 console.error('Create admin account failed', err);
@@ -460,10 +320,7 @@ function ModalAccountDelete({
       <div className="flex flex-row gap-2 justify-center mt-4">
         <Button
           onClick={async () => {
-            const response = await handleAccountDeleteApi(
-              selectedUser.id,
-              setDeleting
-            );
+            const response = await handleAccountDelete(selectedUser.id);
             if (isSuccessResponse(response)) {
               if (onSaved) await onSaved();
             } else {
@@ -507,10 +364,7 @@ function ModalAdminDelete({
       <div className="flex flex-row gap-2 justify-center mt-4">
         <Button
           onClick={async () => {
-            const response = await handleAdminDeleteApi(
-              selectedAdmin.id,
-              setDeleting
-            );
+            const response = await handleAdminDelete(selectedAdmin.id);
             if (isSuccessResponse(response)) {
               if (onSaved) await onSaved();
             } else {
@@ -582,7 +436,7 @@ function ModalPasswordChange({
           <Button
             disabled={email === '' || Boolean(emailHasError)}
             onClick={async () => {
-              const response = await handleEmailChangeApi(email, userid);
+              const response = await handleEmailChange(email, userid);
               if (isSuccessResponse(response)) {
                 if (onSaved) await onSaved();
               } else {
@@ -614,7 +468,7 @@ function ModalPasswordChange({
 
           <Button
             onClick={async () => {
-              const generated = await GeneratePassword();
+              const generated = await handleGeneratePassword();
               if (!isSuccessResponse(generated)) {
                 console.error('Password generation failed:', generated.message);
                 return;
@@ -639,7 +493,7 @@ function ModalPasswordChange({
               Boolean(confirmPasswordHasError)
             }
             onClick={async () => {
-              const response = await handlePasswordChangeApi(password, userid);
+              const response = await handlePasswordChange(password, userid);
               if (!isSuccessResponse(response)) {
                 console.error('Password change failed:', response.message);
                 return;
@@ -716,58 +570,6 @@ function ModalUserView({
   );
 }
 
-// Type für User
-interface User {
-  readonly id: number;
-  readonly email: string;
-  readonly weight: number; // in kg
-  readonly height: number; // in cm
-  readonly age: number; // in years
-  readonly gender: 'male' | 'female';
-  readonly activity_level: string;
-  readonly goal: string;
-  readonly bfp: number; // body fat percentage
-  readonly waist: number; // in cm
-  readonly hip: number; // in cm
-  readonly bmi: number; // body mass index
-  readonly calories: number; // daily caloric needs
-  locked: boolean; // Kann sich ändern, also nicht readonly
-}
-
-interface Meal {
-  readonly id: number;
-  readonly user_id: number;
-  readonly date: string;
-  readonly name: string;
-  readonly calories: number;
-  readonly protein: number;
-  readonly carbs: number;
-  readonly fats: number;
-}
-
-interface Exercises {
-  readonly id: number;
-  readonly user_id: number;
-  readonly workout_plan_id: number | null;
-  readonly date: string;
-  readonly name: string;
-  readonly sets: number;
-  readonly reps: number[];
-  readonly weights: number[];
-  readonly users: User;
-  readonly workout_plans: WorkoutPlans | null;
-}
-
-interface WorkoutPlans {
-  readonly id: number;
-}
-
-interface Admin {
-  readonly id: number;
-  readonly masterid: boolean;
-  readonly email: string;
-}
-
 function Dashboard() {
   const [users, setUsers] = useState<readonly User[]>([]);
   const [exercises, setExercises] = useState<readonly Exercises[]>([]);
@@ -788,7 +590,13 @@ function Dashboard() {
   const [admins, setAdmins] = useState<readonly Admin[]>([]);
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
   const [isAdminDeleting, setIsAdminDeleting] = useState<boolean>(false);
-
+  const [userInterfaceState, setUserInterfaceState] = useState<UISTATE_USERS>({
+    type: 'loading',
+  });
+  const [adminInterfaceState, setAdminInterfaceState] =
+    useState<UISTATE_ADMINS>({
+      type: 'loading',
+    });
   const handleEmailChange = useCallback((value: string) => {
     setEmail(value);
   }, []);
@@ -800,71 +608,6 @@ function Dashboard() {
   const handleConfirmPasswordChange = useCallback((value: string) => {
     setConfirmPassword(value);
   }, []);
-
-  type UserResponse = {
-    readonly users: readonly User[];
-  };
-
-  async function fetchUsers(): Promise<void> {
-    const response = await apiRequest<UserResponse>(
-      'get',
-      'http://localhost:3000/api/users'
-    );
-    if (isSuccessResponse(response)) {
-      setUsers(response.data.users);
-    } else {
-      setUsers([]);
-    }
-  }
-
-  type AdminResponse = {
-    readonly admins: readonly Admin[];
-  };
-
-  async function fetchAdmins(): Promise<void> {
-    const response = await apiRequest<AdminResponse>(
-      'get',
-      'http://localhost:3000/api/admins'
-    );
-
-    if (isSuccessResponse(response)) {
-      setAdmins(response.data.admins);
-    } else {
-      setAdmins([]);
-    }
-  }
-
-  type MealResponse = {
-    readonly meals: readonly Meal[];
-  };
-
-  async function fetchMeals(): Promise<void> {
-    const response = await apiRequest<MealResponse>(
-      'get',
-      'http://localhost:3000/api/meals'
-    );
-    if (isSuccessResponse(response)) {
-      setMeals(response.data.meals);
-    } else {
-      setMeals([]);
-    }
-  }
-
-  type ExercisesResponse = {
-    readonly exercises: readonly Exercises[];
-  };
-
-  async function fetchExercises(): Promise<void> {
-    const response = await apiRequest<ExercisesResponse>(
-      'get',
-      'http://localhost:3000/api/exercises'
-    );
-    if (isSuccessResponse(response)) {
-      setExercises(response.data.exercises);
-    } else {
-      setExercises([]);
-    }
-  }
 
   function AdminCard(admin: Admin): JSX.Element {
     return (
@@ -924,11 +667,7 @@ function Dashboard() {
                 `Toggling lock status for user ID ${user.id} to ${updatedLockedStatus}`
               );
 
-              await handleLockToggleApi(
-                user.id,
-                updatedLockedStatus,
-                fetchUsers
-              );
+              await handleLockToggle(user.id, updatedLockedStatus);
               setSelectedUser({
                 ...user,
                 locked: updatedLockedStatus,
@@ -943,12 +682,52 @@ function Dashboard() {
       </div>
     );
   }
+  const loadData = async () => {
+    setUserInterfaceState({ type: 'loading' });
+    const [usersResponse, exercisesResponse, mealsResponse, adminsResponse] =
+      await Promise.all([
+        fetchUsers(),
+        fetchExercises(),
+        fetchMeals(),
+        fetchAdmins(),
+      ]);
+
+    if (isSuccessResponse(usersResponse)) {
+      setUsers(usersResponse.data.users);
+      setUserInterfaceState({
+        type: 'success',
+        user: usersResponse.data.users,
+      });
+    } else {
+      setUserInterfaceState({ type: 'error', error: 'Failed to fetch users' });
+    }
+    if (isSuccessResponse(exercisesResponse)) {
+      setExercises(exercisesResponse.data.exercises);
+    }
+    if (isSuccessResponse(mealsResponse)) {
+      setMeals(mealsResponse.data.meals);
+    }
+    if (isSuccessResponse(adminsResponse)) {
+      setAdmins(adminsResponse.data.admins);
+      setAdminInterfaceState({
+        type: 'success',
+        admins: adminsResponse.data.admins,
+      });
+    }
+  };
+
+  const helpfetchUsers = useCallback(async () => {
+    const response = await fetchUsers();
+    if (isSuccessResponse(response)) {
+      setUsers(response.data.users);
+      setUserInterfaceState({ type: 'success', user: response.data.users });
+    } else {
+      setUserInterfaceState({ type: 'error', error: 'Failed to fetch users' });
+    }
+  }, []);
 
   useEffect(() => {
-    fetchUsers();
-    fetchAdmins();
-    fetchMeals();
-    fetchExercises();
+    loadData();
   }, []);
 
   return (
@@ -972,14 +751,25 @@ function Dashboard() {
               Registered Users: {users.length}
             </div>
             <div className="flex flex-col items-center space-y-2 w-full overflow-y-auto max-h-[20dvh] lg:max-h-[50dvh] ">
-              {users.map((u, index) => (
-                <div key={u.id || index} className="mb-2">
-                  {UserCard(u, () => {
-                    setSelectedUser(u);
-                    setIsModalOpen(true);
-                  })}
+              {userInterfaceState.type === 'success' &&
+                users.map((u, index) => (
+                  <div key={u.id || index} className="mb-2">
+                    {UserCard(u, () => {
+                      setSelectedUser(u);
+                      setIsModalOpen(true);
+                    })}
+                  </div>
+                ))}
+              {userInterfaceState.type === 'loading' && (
+                <div className="flex justify-center items-center">
+                  <span className="loading loading-spinner loading-lg text-white"></span>
                 </div>
-              ))}
+              )}
+              {userInterfaceState.type === 'error' && (
+                <p className="text-red-500 text-center">
+                  {userInterfaceState.error}
+                </p>
+              )}
             </div>
           </TemplateCards>
 
@@ -999,11 +789,22 @@ function Dashboard() {
               Registered Admins: {admins.length}
             </div>
             <div className="flex flex-col items-center space-y-2 w-full overflow-y-auto max-h-[20dvh] lg:max-h-[50dvh]">
-              {admins.map((a, index) => (
-                <div key={a.id || index} className="mb-2">
-                  {AdminCard(a)}
+              {adminInterfaceState.type === 'success' &&
+                adminInterfaceState.admins.map((a, index) => (
+                  <div key={a.id || index} className="mb-2">
+                    {AdminCard(a)}
+                  </div>
+                ))}
+              {adminInterfaceState.type === 'loading' && (
+                <div className="flex justify-center items-center">
+                  <span className="loading loading-spinner loading-lg text-white"></span>
                 </div>
-              ))}
+              )}
+              {adminInterfaceState.type === 'error' && (
+                <p className="text-red-500 text-center">
+                  {adminInterfaceState.error}
+                </p>
+              )}
             </div>
           </TemplateCards>
 
@@ -1056,7 +857,7 @@ function Dashboard() {
           onEmailChange={handleEmailChange}
           onClose={() => setIsEditing(false)}
           userid={selectedUser.id}
-          onSaved={fetchUsers}
+          onSaved={helpfetchUsers}
           errorPassword={(error) => setPasswordError(error)}
           errorConfirmPassword={(error) => setConfirmPasswordError(error)}
           errorEmail={(error) => setEmailError(error)}
@@ -1069,13 +870,13 @@ function Dashboard() {
         <ModalAccountDelete
           setDeleting={setIsDeleting}
           selectedUser={selectedUser}
-          onSaved={fetchUsers}
+          onSaved={helpfetchUsers}
         />
       )}
       {isAddingAccount && (
         <ModalAccountAdd
           setIsAddingAccount={setIsAddingAccount}
-          onSaved={fetchUsers}
+          onSaved={helpfetchUsers}
           onEmailChange={handleEmailChange}
           onPasswordChange={handlePasswordChange}
           onConfirmPasswordChange={handleConfirmPasswordChange}
