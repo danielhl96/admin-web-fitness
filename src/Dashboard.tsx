@@ -4,13 +4,9 @@ import React, { useCallback } from 'react';
 import { useEffect, useState } from 'react';
 import Button from './Button.tsx';
 
-import {
-  UISTATE_USERS,
-  UISTATE_ADMINS,
-  UISTATE_EXERCISES,
-  UISTATE_MEALS,
-} from './types.ts';
-import { Admin, User, Meal, Exercises, WorkoutPlans } from './types.ts';
+import { UI_STATE } from './types.ts';
+import { NotifyProps } from './notify.tsx';
+import { Admin, User, Meal, Exercises } from './types.ts';
 import {
   handleEmailChange,
   handlePasswordChange,
@@ -23,6 +19,7 @@ import {
   fetchExercises,
   fetchMeals,
   fetchUsers,
+  handleCreateUser,
 } from './api.ts';
 import {
   FaEye,
@@ -33,7 +30,7 @@ import {
   FaPlus,
   FaKey,
 } from 'react-icons/fa';
-
+import Notify from './notify.tsx';
 import EmailInput from './emailinput.tsx';
 import PasswordInput from './passwordinput.tsx';
 
@@ -112,6 +109,7 @@ interface ModalAccountAddProps {
   emailHasError?: boolean;
   passwordHasError?: boolean;
   confirmPasswordHasError?: boolean;
+  setStateNotifyManager: (notify: NotifyProps | null) => void;
 }
 
 function ModalAccountAdd({
@@ -129,6 +127,7 @@ function ModalAccountAdd({
   emailHasError,
   passwordHasError,
   confirmPasswordHasError,
+  setStateNotifyManager,
 }: ModalAccountAddProps): JSX.Element {
   return (
     <TemplateModal title="Add Account">
@@ -186,11 +185,21 @@ function ModalAccountAdd({
             }
             onClick={async () => {
               try {
-                await axios.post(
-                  'http://localhost:3000/api/user',
-                  { email, password },
-                  { withCredentials: true }
+                const response = await handleCreateUser(
+                  email || '',
+                  password || ''
                 );
+                console.log('Create account response:', response);
+                if (!isSuccessResponse(response)) {
+                  console.error('Account creation failed:', response.message);
+                  return;
+                }
+                setStateNotifyManager({
+                  title: 'Success',
+                  message: 'Account created successfully',
+                  type: 'success',
+                });
+
                 if (onSaved) await onSaved();
                 onPasswordChange('');
                 onConfirmPasswordChange('');
@@ -229,6 +238,7 @@ interface ModalforAdminProps {
   onEmailChange?: (value: string) => void;
   emailHasError?: boolean;
   passwordHasError?: boolean;
+  setStateNotifyManager: (notify: NotifyProps | null) => void;
 }
 
 function ModalforAdmin({
@@ -241,6 +251,7 @@ function ModalforAdmin({
   onEmailChange,
   emailHasError,
   passwordHasError,
+  setStateNotifyManager,
 }: ModalforAdminProps): JSX.Element {
   return (
     <TemplateModal title="Create Admin Account">
@@ -280,8 +291,18 @@ function ModalforAdmin({
               try {
                 await handleAdminCreate(email || '', password || '');
                 if (onClose) onClose();
+                setStateNotifyManager({
+                  title: 'Success',
+                  message: 'Admin account created successfully',
+                  type: 'success',
+                });
               } catch (err) {
                 console.error('Create admin account failed', err);
+                setStateNotifyManager({
+                  title: 'Error',
+                  message: 'Failed to create admin account',
+                  type: 'error',
+                });
               }
             }}
             disabled={emailHasError || passwordHasError || !email || !password}
@@ -303,11 +324,13 @@ interface ModalAccountDeleteProps {
   setDeleting: (deleting: boolean) => void;
   selectedUser: User;
   onSaved?: () => Promise<void> | void;
+  setStateNotifyManager: (notify: NotifyProps | null) => void;
 }
 function ModalAccountDelete({
   setDeleting,
   selectedUser,
   onSaved,
+  setStateNotifyManager,
 }: ModalAccountDeleteProps): JSX.Element {
   return (
     <TemplateModal title="Delete Account">
@@ -323,6 +346,12 @@ function ModalAccountDelete({
             const response = await handleAccountDelete(selectedUser.id);
             if (isSuccessResponse(response)) {
               if (onSaved) await onSaved();
+              setDeleting(false);
+              setStateNotifyManager({
+                title: 'Success',
+                message: response.data.message,
+                type: 'success',
+              });
             } else {
               console.log('Delete account failed:', response.message);
             }
@@ -348,10 +377,12 @@ function ModalAdminDelete({
   setDeleting,
   selectedAdmin,
   onSaved,
+  setStateNotifyManager,
 }: {
   setDeleting: (deleting: boolean) => void;
   selectedAdmin: Admin;
   onSaved?: () => Promise<void> | void;
+  setStateNotifyManager: (notify: NotifyProps | null) => void;
 }): JSX.Element {
   return (
     <TemplateModal title="Delete Admin Account">
@@ -367,8 +398,18 @@ function ModalAdminDelete({
             const response = await handleAdminDelete(selectedAdmin.id);
             if (isSuccessResponse(response)) {
               if (onSaved) await onSaved();
+
+              setStateNotifyManager({
+                title: 'Success',
+                message: response.data.message,
+                type: 'success',
+              });
             } else {
-              console.log('Delete admin failed:', response.message);
+              setStateNotifyManager({
+                title: 'Error',
+                message: response.message,
+                type: 'error',
+              });
             }
           }}
           w="sm:w-auto w-12"
@@ -404,6 +445,7 @@ interface ModalPasswordChangeProps {
   onConfirmPasswordChange: (value: string) => void;
   onClose: () => void;
   onSaved?: () => Promise<void> | void;
+  setStateNotifyManager: (notify: NotifyProps | null) => void;
 }
 
 function ModalPasswordChange({
@@ -422,6 +464,7 @@ function ModalPasswordChange({
   emailHasError,
   passwordHasError,
   confirmPasswordHasError,
+  setStateNotifyManager,
 }: ModalPasswordChangeProps): JSX.Element {
   return (
     <TemplateModal title="Change Credentials">
@@ -439,6 +482,11 @@ function ModalPasswordChange({
               const response = await handleEmailChange(email, userid);
               if (isSuccessResponse(response)) {
                 if (onSaved) await onSaved();
+                setStateNotifyManager({
+                  title: 'Success',
+                  message: 'Email changed successfully',
+                  type: 'success',
+                });
               } else {
                 return;
               }
@@ -499,6 +547,11 @@ function ModalPasswordChange({
                 return;
               }
               if (onSaved) await onSaved();
+              setStateNotifyManager({
+                title: 'Success',
+                message: 'Password changed successfully',
+                type: 'success',
+              });
               onClose();
             }}
             w="sm:w-auto w-12"
@@ -573,7 +626,6 @@ function ModalUserView({
 function Dashboard() {
   const [users, setUsers] = useState<readonly User[]>([]);
   const [exercises, setExercises] = useState<readonly Exercises[]>([]);
-  const [meals, setMeals] = useState<readonly Meal[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -590,13 +642,26 @@ function Dashboard() {
   const [admins, setAdmins] = useState<readonly Admin[]>([]);
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
   const [isAdminDeleting, setIsAdminDeleting] = useState<boolean>(false);
-  const [userInterfaceState, setUserInterfaceState] = useState<UISTATE_USERS>({
+  const [userInterfaceState, setUserInterfaceState] = useState<
+    UI_STATE<readonly User[]>
+  >({
     type: 'loading',
   });
-  const [adminInterfaceState, setAdminInterfaceState] =
-    useState<UISTATE_ADMINS>({
-      type: 'loading',
-    });
+  const [adminInterfaceState, setAdminInterfaceState] = useState<
+    UI_STATE<readonly Admin[]>
+  >({
+    type: 'loading',
+  });
+  const [exerciseInterfaceState, setExerciseInterfaceState] = useState<
+    UI_STATE<readonly Exercises[]>
+  >({
+    type: 'loading',
+  });
+  const [mealInterfaceState, setMealInterfaceState] = useState<
+    UI_STATE<readonly Meal[]>
+  >({
+    type: 'loading',
+  });
   const handleEmailChange = useCallback((value: string) => {
     setEmail(value);
   }, []);
@@ -608,6 +673,9 @@ function Dashboard() {
   const handleConfirmPasswordChange = useCallback((value: string) => {
     setConfirmPassword(value);
   }, []);
+
+  const [stateNotifyManager, setStateNotifyManager] =
+    useState<NotifyProps | null>(null);
 
   function AdminCard(admin: Admin): JSX.Element {
     return (
@@ -663,15 +731,32 @@ function Dashboard() {
           <Button
             onClick={async () => {
               const updatedLockedStatus = !user.locked;
-              console.log(
-                `Toggling lock status for user ID ${user.id} to ${updatedLockedStatus}`
+
+              const response = await handleLockToggle(
+                user.id,
+                updatedLockedStatus
               );
 
-              await handleLockToggle(user.id, updatedLockedStatus);
-              setSelectedUser({
-                ...user,
-                locked: updatedLockedStatus,
+              if (!isSuccessResponse(response)) {
+                console.error(
+                  'Failed to toggle lock status:',
+                  response.message
+                );
+                return;
+              }
+
+              setStateNotifyManager({
+                title: 'Success',
+                message: response.data.message,
+                type: 'success',
               });
+
+              // Update the users list to reflect the change immediately
+              setUsers((prevUsers) =>
+                prevUsers.map((u) =>
+                  u.id === user.id ? { ...u, locked: updatedLockedStatus } : u
+                )
+              );
             }}
             w="w-11"
             border="#3B82F6"
@@ -696,22 +781,44 @@ function Dashboard() {
       setUsers(usersResponse.data.users);
       setUserInterfaceState({
         type: 'success',
-        user: usersResponse.data.users,
+        data: usersResponse.data.users,
       });
     } else {
       setUserInterfaceState({ type: 'error', error: 'Failed to fetch users' });
     }
     if (isSuccessResponse(exercisesResponse)) {
       setExercises(exercisesResponse.data.exercises);
+      setExerciseInterfaceState({
+        type: 'success',
+        data: exercisesResponse.data.exercises,
+      });
+    } else {
+      setExerciseInterfaceState({
+        type: 'error',
+        error: 'Failed to fetch exercises',
+      });
     }
     if (isSuccessResponse(mealsResponse)) {
-      setMeals(mealsResponse.data.meals);
+      setMealInterfaceState({
+        type: 'success',
+        data: mealsResponse.data.meals,
+      });
+    } else {
+      setMealInterfaceState({
+        type: 'error',
+        error: 'Failed to fetch meals',
+      });
     }
     if (isSuccessResponse(adminsResponse)) {
       setAdmins(adminsResponse.data.admins);
       setAdminInterfaceState({
         type: 'success',
-        admins: adminsResponse.data.admins,
+        data: adminsResponse.data.admins,
+      });
+    } else {
+      setAdminInterfaceState({
+        type: 'error',
+        error: 'Failed to fetch admins',
       });
     }
   };
@@ -720,9 +827,22 @@ function Dashboard() {
     const response = await fetchUsers();
     if (isSuccessResponse(response)) {
       setUsers(response.data.users);
-      setUserInterfaceState({ type: 'success', user: response.data.users });
+      setUserInterfaceState({ type: 'success', data: response.data.users });
     } else {
       setUserInterfaceState({ type: 'error', error: 'Failed to fetch users' });
+    }
+  }, []);
+
+  const helpfetchAdmins = useCallback(async () => {
+    const response = await fetchAdmins();
+    if (isSuccessResponse(response)) {
+      setAdmins(response.data.admins);
+      setAdminInterfaceState({ type: 'success', data: response.data.admins });
+    } else {
+      setAdminInterfaceState({
+        type: 'error',
+        error: 'Failed to fetch admins',
+      });
     }
   }, []);
 
@@ -790,7 +910,7 @@ function Dashboard() {
             </div>
             <div className="flex flex-col items-center space-y-2 w-full overflow-y-auto max-h-[20dvh] lg:max-h-[50dvh]">
               {adminInterfaceState.type === 'success' &&
-                adminInterfaceState.admins.map((a, index) => (
+                adminInterfaceState.data.map((a, index) => (
                   <div key={a.id || index} className="mb-2">
                     {AdminCard(a)}
                   </div>
@@ -813,30 +933,55 @@ function Dashboard() {
               Logged Exercises: {exercises.length}
             </div>
             <div className="flex flex-col overflow-y-auto items-center w-full max-h-[20dvh] lg:max-h-[50dvh]">
-              {exercises.map((e, index) => (
-                <div key={index} className="mb-2">
-                  <p className="text-white text-center text-xs">
-                    {e.name} {e.weights.join('kg, ')}kg - Reps:{' '}
-                    {e.reps.join(', ')}
-                  </p>
+              {exerciseInterfaceState.type === 'success' &&
+                exerciseInterfaceState.data.map((e, index) => (
+                  <div key={index} className="mb-2">
+                    <p className="text-white text-center text-xs">
+                      {e.name} {e.weights.join('kg, ')}kg - Reps:{' '}
+                      {e.reps.join(', ')}
+                    </p>
+                  </div>
+                ))}
+              {exerciseInterfaceState.type === 'loading' && (
+                <div className="flex justify-center items-center">
+                  <span className="loading loading-spinner loading-lg text-white"></span>
                 </div>
-              ))}
+              )}
+              {exerciseInterfaceState.type === 'error' && (
+                <p className="text-red-500 text-center">
+                  {exerciseInterfaceState.error}
+                </p>
+              )}
             </div>
           </TemplateCards>
 
           <TemplateCards title="Statistics Meals">
             <div className="divider divider-primary">
-              Logged Meals: {meals.length}
+              Logged Meals:{' '}
+              {mealInterfaceState.type === 'success'
+                ? mealInterfaceState.data.length
+                : 'No meals logged'}
             </div>
             <div className="flex flex-col  overflow-y-auto items-center w-full max-h-[20dvh] lg:max-h-[50dvh]">
-              {meals.map((e, index) => (
-                <div key={index} className="mb-2">
-                  <p className="text-white text-center text-xs">
-                    {e.name} - {e.calories} kcal P: {e.protein}g, C: {e.carbs}g
-                    F: {e.fats}g
-                  </p>
+              {mealInterfaceState.type === 'success' &&
+                mealInterfaceState.data.map((e, index) => (
+                  <div key={index} className="mb-2">
+                    <p className="text-white text-center text-xs">
+                      {e.name} - {e.calories} kcal P: {e.protein}g, C: {e.carbs}
+                      g F: {e.fats}g
+                    </p>
+                  </div>
+                ))}
+              {mealInterfaceState.type === 'loading' && (
+                <div className="flex justify-center items-center">
+                  <span className="loading loading-spinner loading-lg text-white"></span>
                 </div>
-              ))}
+              )}
+              {mealInterfaceState.type === 'error' && (
+                <p className="text-red-500 text-center">
+                  {mealInterfaceState.error}
+                </p>
+              )}
             </div>
           </TemplateCards>
         </div>
@@ -845,6 +990,15 @@ function Dashboard() {
         <ModalUserView
           user={selectedUser}
           onClose={() => setIsModalOpen(false)}
+        />
+      )}
+      {stateNotifyManager && (
+        <Notify
+          title={stateNotifyManager?.title || ''}
+          message={stateNotifyManager?.message || ''}
+          type={stateNotifyManager?.type || 'success'}
+          duration={2000}
+          onClose={() => setStateNotifyManager(null)}
         />
       )}
       {isEditing && selectedUser && (
@@ -864,6 +1018,7 @@ function Dashboard() {
           emailHasError={emailError}
           passwordHasError={passwordError}
           confirmPasswordHasError={confirmPasswordError}
+          setStateNotifyManager={setStateNotifyManager}
         />
       )}
       {isDeleting && selectedUser && (
@@ -871,6 +1026,7 @@ function Dashboard() {
           setDeleting={setIsDeleting}
           selectedUser={selectedUser}
           onSaved={helpfetchUsers}
+          setStateNotifyManager={setStateNotifyManager}
         />
       )}
       {isAddingAccount && (
@@ -889,19 +1045,24 @@ function Dashboard() {
           emailHasError={emailError}
           passwordHasError={passwordError}
           confirmPasswordHasError={confirmPasswordError}
+          setStateNotifyManager={setStateNotifyManager}
         />
       )}
       {isAdminView && (
         <ModalforAdmin
           onEmailChange={handleEmailChange}
           onPasswordChange={handlePasswordChange}
-          onClose={() => setIsAdminView(false)}
+          onClose={() => {
+            setIsAdminView(false);
+            helpfetchAdmins();
+          }}
           errorEmail={(error) => setEmailError(error)}
           errorPassword={(error) => setPasswordError(error)}
           emailHasError={emailError}
           passwordHasError={passwordError}
           email={Email}
           password={Password}
+          setStateNotifyManager={setStateNotifyManager}
         />
       )}
 
@@ -911,8 +1072,9 @@ function Dashboard() {
           selectedAdmin={selectedAdmin}
           onSaved={() => {
             setSelectedAdmin(null);
-            fetchAdmins();
+            helpfetchAdmins();
           }}
+          setStateNotifyManager={setStateNotifyManager}
         />
       )}
     </div>

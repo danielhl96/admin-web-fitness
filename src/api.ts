@@ -195,3 +195,15 @@ export async function fetchExercises(): Promise<
   );
   return response;
 }
+
+export async function handleCreateUser(
+  email: string,
+  password: string
+): Promise<ApiResponse<{ message: string; userId: number }>> {
+  const response = await apiRequest<{ message: string; userId: number }>(
+    'post',
+    `${API_URL}register`,
+    { email, password }
+  );
+  return response;
+}

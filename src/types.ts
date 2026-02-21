@@ -18,7 +18,7 @@ export type PasswordGenerateData = {
   password: string;
 };
 
-export type UISTATE_USERS =
+export type UI_STATE<T> =
   | {
       type: 'loading';
     }
@@ -28,45 +28,7 @@ export type UISTATE_USERS =
     }
   | {
       type: 'success';
-      user: readonly User[];
-    };
-export type UISTATE_ADMINS =
-  | {
-      type: 'loading';
-    }
-  | {
-      type: 'error';
-      error: string;
-    }
-  | {
-      type: 'success';
-      admins: readonly Admin[];
-    };
-
-export type UISTATE_MEALS =
-  | {
-      type: 'loading';
-    }
-  | {
-      type: 'error';
-      error: string;
-    }
-  | {
-      type: 'success';
-      meals: readonly Meal[];
-    };
-
-export type UISTATE_EXERCISES =
-  | {
-      type: 'loading';
-    }
-  | {
-      type: 'error';
-      error: string;
-    }
-  | {
-      type: 'success';
-      exercises: readonly Exercises[];
+      data: T;
     };
 
 export interface User {

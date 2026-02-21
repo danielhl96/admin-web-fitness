@@ -167,7 +167,7 @@ app.get('/api/profile/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-app.post('/api/user', verifyAdmin, async (req, res) => {
+app.post('/api/register', verifyAdmin, async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
