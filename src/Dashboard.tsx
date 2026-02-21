@@ -888,7 +888,10 @@ function Dashboard() {
                 </div>
               )}
               {userInterfaceState.type === 'error' && (
-                <p className="text-red-500 text-center">
+                <p
+                  className="text-red-500 t
+                ext-center"
+                >
                   {userInterfaceState.error}
                 </p>
               )}

@@ -101,7 +101,7 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-app.get('/api/users', async (req, res, next) => {
+app.get('/api/users', verifyAdmin, async (req, res, next) => {
   try {
     const users = await prisma.users.findMany();
     res.json({ users: users });
@@ -111,7 +111,7 @@ app.get('/api/users', async (req, res, next) => {
 });
 
 // Exercises routes
-app.get('/api/exercises', async (req, res, next) => {
+app.get('/api/exercises', verifyAdmin, async (req, res, next) => {
   try {
     const exercises = await prisma.exercises.findMany({
       include: {
@@ -126,7 +126,7 @@ app.get('/api/exercises', async (req, res, next) => {
 });
 
 // Meals routes
-app.get('/api/meals', async (req, res, next) => {
+app.get('/api/meals', verifyAdmin, async (req, res, next) => {
   try {
     const meals = await prisma.meals.findMany({
       include: {
