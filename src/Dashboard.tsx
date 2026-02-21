@@ -373,17 +373,19 @@ function ModalAccountDelete({
   );
 }
 
+interface ModalAdminDeleteProps {
+  setDeleting: (deleting: boolean) => void;
+  selectedAdmin: Admin;
+  onSaved?: () => Promise<void> | void;
+  setStateNotifyManager: (notify: NotifyProps | null) => void;
+}
+
 function ModalAdminDelete({
   setDeleting,
   selectedAdmin,
   onSaved,
   setStateNotifyManager,
-}: {
-  setDeleting: (deleting: boolean) => void;
-  selectedAdmin: Admin;
-  onSaved?: () => Promise<void> | void;
-  setStateNotifyManager: (notify: NotifyProps | null) => void;
-}): JSX.Element {
+}: ModalAdminDeleteProps): JSX.Element {
   return (
     <TemplateModal title="Delete Admin Account">
       <div className="divider divider-primary"></div>
