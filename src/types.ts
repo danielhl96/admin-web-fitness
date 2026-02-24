@@ -48,6 +48,12 @@ export interface User {
   locked: boolean; // Kann sich ändern, also nicht readonly
 }
 
+export type UserCredentials = {
+  email: string;
+  password: string;
+  confirmPassword?: string; // Optional, nur für Registrierung
+};
+
 export interface Meal {
   readonly id: number;
   readonly user_id: number;

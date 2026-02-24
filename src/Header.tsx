@@ -1,10 +1,12 @@
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 function Header({
   setIsAdminView,
 }: {
   setIsAdminView: (value: boolean) => void;
 }) {
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const navigate = useNavigate();
   async function logout() {
     console.log('Logging out...');
@@ -24,7 +26,7 @@ function Header({
 
   return (
     <div className="navbar  bg-black shadow-sm">
-      <div className="navbar-start">
+      <div className={'navbar-start'}>
         <div className="dropdown">
           <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
             <svg
@@ -45,13 +47,20 @@ function Header({
           </div>
           <ul
             tabIndex="-1"
-            className="menu menu-sm dropdown-content bg-black rounded-box z-1 mt-3 w-52 p-2 shadow"
+            className={`menu menu-sm dropdown-content hidden ${!isHeaderVisible ? '' : 'lg:flex'} bg-black rounded-box z-1 mt-3 w-52 p-2 shadow`}
           >
             <li>
               <a>Dashboard</a>
             </li>
             <li>
-              <a onClick={() => setIsAdminView(true)}>Create Admin</a>
+              <a
+                onClick={() => {
+                  setIsAdminView(true);
+                  setIsHeaderVisible(false);
+                }}
+              >
+                Create Admin
+              </a>
             </li>
 
             <li>

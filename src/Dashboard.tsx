@@ -6,7 +6,7 @@ import Button from './Button.tsx';
 
 import { UI_STATE } from './types.ts';
 import { NotifyProps } from './notify.tsx';
-import { Admin, User, Meal, Exercises } from './types.ts';
+import { Admin, User, Meal, Exercises, UserCredentials } from './types.ts';
 import {
   handleEmailChange,
   handlePasswordChange,
@@ -38,6 +38,31 @@ function isSuccessResponse<T>(
   response: ApiResponse<T>
 ): response is { status: 'success'; data: T } {
   return response.status === 'success';
+}
+
+function useUserCredential(): {
+  userCredentials: UserCredentials;
+  handleChange: (field: keyof UserCredentials, value: string) => void;
+  resetUserCredentials: () => void;
+} {
+  const [userCredentials, setUserCredentials] = useState<UserCredentials>({
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+
+  const handleChange = (field: keyof UserCredentials, value: string) => {
+    setUserCredentials((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const resetUserCredentials = () => {
+    setUserCredentials({
+      email: '',
+      password: '',
+      confirmPassword: '',
+    });
+  };
+  return { userCredentials, handleChange, resetUserCredentials };
 }
 
 function getActivityLevelString(level: string | null | undefined): string {
@@ -115,12 +140,7 @@ interface ModalAccountAddProps {
 function ModalAccountAdd({
   onSaved,
   setIsAddingAccount,
-  onPasswordChange = () => {},
-  onConfirmPasswordChange = () => {},
-  onEmailChange = () => {},
-  email,
-  password,
-  confirmPassword,
+
   errorPassword = () => {},
   errorConfirmPassword = () => {},
   errorEmail = () => {},
@@ -129,24 +149,26 @@ function ModalAccountAdd({
   confirmPasswordHasError,
   setStateNotifyManager,
 }: ModalAccountAddProps): JSX.Element {
+  const { userCredentials, handleChange, resetUserCredentials } =
+    useUserCredential();
   return (
     <TemplateModal title="Add Account">
       <div className="divider divider-primary"></div>
       <div className="flex flex-col gap-2 justify-center mt-4">
         <EmailInput
-          value={email || ''}
-          onChange={(e) => onEmailChange(e)}
+          value={userCredentials.email || ''}
+          onChange={(e) => handleChange('email', e)}
           onError={(error) => errorEmail && errorEmail(error)}
         />
         <PasswordInput
-          value={password || ''}
-          onChange={(e) => onPasswordChange(e)}
+          value={userCredentials.password || ''}
+          onChange={(e) => handleChange('password', e)}
           placeholder="Password"
           onError={(error) => errorPassword && errorPassword(error)}
         />
         <PasswordInput
-          value={confirmPassword || ''}
-          onChange={(e) => onConfirmPasswordChange(e)}
+          value={userCredentials.confirmPassword || ''}
+          onChange={(e) => handleChange('confirmPassword', e)}
           placeholder="Confirm Password"
           onError={(error) =>
             errorConfirmPassword && errorConfirmPassword(error)
@@ -158,8 +180,8 @@ function ModalAccountAdd({
             const generated = await handleGeneratePassword();
             if (isSuccessResponse(generated)) {
               console.log(generated.data.password);
-              onPasswordChange(generated.data.password);
-              onConfirmPasswordChange(generated.data.password);
+              handleChange('password', generated.data.password);
+              handleChange('confirmPassword', generated.data.password);
             } else {
               console.error('Password generation failed:', generated.message);
             }
@@ -175,10 +197,10 @@ function ModalAccountAdd({
         <div className="flex flex-row gap-2">
           <Button
             disabled={
-              email === '' ||
-              password === '' ||
-              confirmPassword === '' ||
-              password !== confirmPassword ||
+              userCredentials.email === '' ||
+              userCredentials.password === '' ||
+              userCredentials.confirmPassword === '' ||
+              userCredentials.password !== userCredentials.confirmPassword ||
               Boolean(emailHasError) ||
               Boolean(passwordHasError) ||
               Boolean(confirmPasswordHasError)
@@ -186,8 +208,8 @@ function ModalAccountAdd({
             onClick={async () => {
               try {
                 const response = await handleCreateUser(
-                  email || '',
-                  password || ''
+                  userCredentials.email || '',
+                  userCredentials.password || ''
                 );
                 console.log('Create account response:', response);
                 if (!isSuccessResponse(response)) {
@@ -201,9 +223,8 @@ function ModalAccountAdd({
                 });
 
                 if (onSaved) await onSaved();
-                onPasswordChange('');
-                onConfirmPasswordChange('');
-                onEmailChange('');
+
+                resetUserCredentials();
 
                 setIsAddingAccount(false);
               } catch (err) {
@@ -243,27 +264,25 @@ interface ModalforAdminProps {
 
 function ModalforAdmin({
   onClose,
-  email,
-  password,
   errorEmail,
   errorPassword,
-  onPasswordChange,
-  onEmailChange,
   emailHasError,
   passwordHasError,
   setStateNotifyManager,
 }: ModalforAdminProps): JSX.Element {
+  const { userCredentials, handleChange, resetUserCredentials } =
+    useUserCredential();
   return (
     <TemplateModal title="Create Admin Account">
       <div className="flex flex-col gap-2 justify-center mt-4">
         <EmailInput
-          value={email || ''}
-          onChange={(e) => onEmailChange && onEmailChange(e)}
+          value={userCredentials.email || ''}
+          onChange={(e) => handleChange('email', e)}
           onError={errorEmail}
         />
         <PasswordInput
-          value={password || ''}
-          onChange={(e) => onPasswordChange && onPasswordChange(e)}
+          value={userCredentials.password || ''}
+          onChange={(e) => handleChange('password', e)}
           placeholder="Admin Password"
           onError={errorPassword}
         />
@@ -274,7 +293,7 @@ function ModalforAdmin({
               console.error('Password generation failed:', generated.message);
               return;
             } else {
-              onPasswordChange && onPasswordChange(generated.data.password);
+              handleChange('password', generated.data.password);
             }
           }}
           w="sm:w-28 w-28"
@@ -289,13 +308,17 @@ function ModalforAdmin({
           <Button
             onClick={async () => {
               try {
-                await handleAdminCreate(email || '', password || '');
+                await handleAdminCreate(
+                  userCredentials.email || '',
+                  userCredentials.password || ''
+                );
                 if (onClose) onClose();
                 setStateNotifyManager({
                   title: 'Success',
                   message: 'Admin account created successfully',
                   type: 'success',
                 });
+                resetUserCredentials();
               } catch (err) {
                 console.error('Create admin account failed', err);
                 setStateNotifyManager({
@@ -305,7 +328,12 @@ function ModalforAdmin({
                 });
               }
             }}
-            disabled={emailHasError || passwordHasError || !email || !password}
+            disabled={
+              emailHasError ||
+              passwordHasError ||
+              !userCredentials.email ||
+              !userCredentials.password
+            }
             w="sm:w-auto w-12"
             border="#3B82F6"
           >
@@ -432,9 +460,6 @@ function ModalAdminDelete({
 }
 
 interface ModalPasswordChangeProps {
-  email: string;
-  password: string;
-  confirmPassword: string;
   userid: number;
   errorEmail?: (hasError: boolean) => void;
   errorPassword?: (hasError: boolean) => void;
@@ -442,21 +467,13 @@ interface ModalPasswordChangeProps {
   emailHasError?: boolean;
   passwordHasError?: boolean;
   confirmPasswordHasError?: boolean;
-  onEmailChange: (value: string) => void;
-  onPasswordChange: (value: string) => void;
-  onConfirmPasswordChange: (value: string) => void;
+
   onClose: () => void;
   onSaved?: () => Promise<void> | void;
   setStateNotifyManager: (notify: NotifyProps | null) => void;
 }
 
 function ModalPasswordChange({
-  email,
-  password,
-  confirmPassword,
-  onEmailChange,
-  onPasswordChange,
-  onConfirmPasswordChange,
   onClose,
   userid,
   onSaved,
@@ -468,20 +485,25 @@ function ModalPasswordChange({
   confirmPasswordHasError,
   setStateNotifyManager,
 }: ModalPasswordChangeProps): JSX.Element {
+  const { userCredentials, handleChange, resetUserCredentials } =
+    useUserCredential();
   return (
     <TemplateModal title="Change Credentials">
       <div className="divider divider-primary"></div>
       <div className="flex flex-col space-y-2">
         <div className="flex gap-2 flex-row text-white text-sm">
           <EmailInput
-            value={email}
-            onChange={onEmailChange}
+            value={userCredentials.email}
+            onChange={(value) => handleChange('email', value)}
             onError={errorEmail}
           />
           <Button
-            disabled={email === '' || Boolean(emailHasError)}
+            disabled={userCredentials.email === '' || Boolean(emailHasError)}
             onClick={async () => {
-              const response = await handleEmailChange(email, userid);
+              const response = await handleEmailChange(
+                userCredentials.email,
+                userid
+              );
               if (isSuccessResponse(response)) {
                 if (onSaved) await onSaved();
                 setStateNotifyManager({
@@ -489,6 +511,7 @@ function ModalPasswordChange({
                   message: 'Email changed successfully',
                   type: 'success',
                 });
+                resetUserCredentials();
               } else {
                 return;
               }
@@ -503,15 +526,15 @@ function ModalPasswordChange({
         </div>
 
         <PasswordInput
-          value={password}
-          onChange={onPasswordChange}
+          value={userCredentials.password}
+          onChange={(value) => handleChange('password', value)}
           placeholder="New Password"
           onError={errorPassword}
         />
         <div className="flex flex-row text-white text-sm gap-2">
           <PasswordInput
-            value={confirmPassword}
-            onChange={onConfirmPasswordChange}
+            value={userCredentials.confirmPassword}
+            onChange={(value) => handleChange('confirmPassword', value)}
             placeholder="Confirm New Password"
             onError={errorConfirmPassword}
           />
@@ -523,8 +546,8 @@ function ModalPasswordChange({
                 console.error('Password generation failed:', generated.message);
                 return;
               } else {
-                onPasswordChange(generated.data.password);
-                onConfirmPasswordChange(generated.data.password);
+                handleChange('password', generated.data.password);
+                handleChange('confirmPassword', generated.data.password);
               }
             }}
             w="sm:w-28 w-12"
@@ -537,13 +560,16 @@ function ModalPasswordChange({
 
           <Button
             disabled={
-              password === '' ||
-              password !== confirmPassword ||
+              userCredentials.password === '' ||
+              userCredentials.password !== userCredentials.confirmPassword ||
               Boolean(passwordHasError) ||
               Boolean(confirmPasswordHasError)
             }
             onClick={async () => {
-              const response = await handlePasswordChange(password, userid);
+              const response = await handlePasswordChange(
+                userCredentials.password,
+                userid
+              );
               if (!isSuccessResponse(response)) {
                 console.error('Password change failed:', response.message);
                 return;
@@ -632,9 +658,6 @@ function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const [Email, setEmail] = useState<string>('');
-  const [Password, setPassword] = useState<string>('');
-  const [ConfirmPassword, setConfirmPassword] = useState<string>('');
   const [passwordError, setPasswordError] = useState<boolean>(false);
   const [confirmPasswordError, setConfirmPasswordError] =
     useState<boolean>(false);
@@ -664,17 +687,6 @@ function Dashboard() {
   >({
     type: 'loading',
   });
-  const handleEmailChange = useCallback((value: string) => {
-    setEmail(value);
-  }, []);
-
-  const handlePasswordChange = useCallback((value: string) => {
-    setPassword(value);
-  }, []);
-
-  const handleConfirmPasswordChange = useCallback((value: string) => {
-    setConfirmPassword(value);
-  }, []);
 
   const [stateNotifyManager, setStateNotifyManager] =
     useState<NotifyProps | null>(null);
@@ -713,7 +725,6 @@ function Dashboard() {
             onClick={() => {
               setIsEditing(true);
               setSelectedUser(user);
-              setEmail(user.email);
             }}
             w="w-11"
             border="#3B82F6"
@@ -1008,12 +1019,6 @@ function Dashboard() {
       )}
       {isEditing && selectedUser && (
         <ModalPasswordChange
-          email={Email}
-          password={Password}
-          confirmPassword={ConfirmPassword}
-          onPasswordChange={handlePasswordChange}
-          onConfirmPasswordChange={handleConfirmPasswordChange}
-          onEmailChange={handleEmailChange}
           onClose={() => setIsEditing(false)}
           userid={selectedUser.id}
           onSaved={helpfetchUsers}
@@ -1038,12 +1043,6 @@ function Dashboard() {
         <ModalAccountAdd
           setIsAddingAccount={setIsAddingAccount}
           onSaved={helpfetchUsers}
-          onEmailChange={handleEmailChange}
-          onPasswordChange={handlePasswordChange}
-          onConfirmPasswordChange={handleConfirmPasswordChange}
-          confirmPassword={ConfirmPassword}
-          password={Password}
-          email={Email}
           errorPassword={(error) => setPasswordError(error)}
           errorConfirmPassword={(error) => setConfirmPasswordError(error)}
           errorEmail={(error) => setEmailError(error)}
@@ -1055,8 +1054,6 @@ function Dashboard() {
       )}
       {isAdminView && (
         <ModalforAdmin
-          onEmailChange={handleEmailChange}
-          onPasswordChange={handlePasswordChange}
           onClose={() => {
             setIsAdminView(false);
             helpfetchAdmins();
@@ -1065,8 +1062,6 @@ function Dashboard() {
           errorPassword={(error) => setPasswordError(error)}
           emailHasError={emailError}
           passwordHasError={passwordError}
-          email={Email}
-          password={Password}
           setStateNotifyManager={setStateNotifyManager}
         />
       )}
