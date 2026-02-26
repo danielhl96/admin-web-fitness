@@ -26,7 +26,7 @@ import EmailInput from './emailinput.tsx';
 import PasswordInput from './passwordinput.tsx';
 import UserCard from './UserCard.tsx';
 import isSuccessResponse from './isSuccessResponse.tsx';
-
+const NOTIFICATION_DURATION = 2000; // ms
 function useUserCredential(): {
   userCredentials: UserCredentials;
   handleChange: (
@@ -956,7 +956,7 @@ function Dashboard() {
           title={stateNotifyManager?.title || ''}
           message={stateNotifyManager?.message || ''}
           type={stateNotifyManager?.type || 'success'}
-          duration={2000}
+          duration={NOTIFICATION_DURATION}
           onClose={() => setStateNotifyManager(null)}
         />
       )}
