@@ -4,9 +4,15 @@ import React, { useCallback, useMemo } from 'react';
 import { useEffect, useState } from 'react';
 import Button from '../../Components/Button';
 import AdminCard from '../../Components/AdminCard';
-import { UI_STATE } from '../../types.ts';
+import {
+  UI_STATE,
+  ModalAccountAddProps,
+  ModalAccountDeleteProps,
+  ModalforAdminProps,
+} from '../../types.ts';
 import { NotifyProps } from '../../Components/notify';
 import { Admin, User, Meal, Exercises, UserCredentials } from '../../types.ts';
+import { TemplateModal } from '../../Components/TemplateModal.tsx';
 import {
   handleEmailChange,
   handlePasswordChange,
@@ -60,40 +66,6 @@ function useUserCredential(): {
 }
 
 // Top-level modals to avoid remounting on each Dashboard render
-function TemplateModal({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center ">
-      <div className="bg-gradient-to-b from-gray-900 to-black backdrop-blur border border-white/20 p-6 rounded-lg max-w-md w-auto mx-4">
-        <h2 className="text-xl font-bold mb-4">{title}</h2>
-        <div>{children}</div>
-      </div>
-    </div>
-  );
-}
-
-interface ModalAccountAddProps {
-  onSaved?: () => Promise<void> | void;
-  setIsAddingAccount: (adding: boolean) => void;
-  onPasswordChange?: (password: string) => void;
-  onConfirmPasswordChange?: (password: string) => void;
-  onEmailChange?: (email: string) => void;
-  email?: string;
-  password?: string;
-  confirmPassword?: string;
-  errorPassword?: (hasError: boolean) => void;
-  errorConfirmPassword?: (hasError: boolean) => void;
-  errorEmail?: (hasError: boolean) => void;
-  emailHasError?: boolean;
-  passwordHasError?: boolean;
-  confirmPasswordHasError?: boolean;
-  setStateNotifyManager: (notify: NotifyProps | null) => void;
-}
 
 function ModalAccountAdd({
   onSaved,
@@ -207,19 +179,6 @@ function ModalAccountAdd({
   );
 }
 
-interface ModalforAdminProps {
-  onClose: () => void;
-  email?: string;
-  password?: string;
-  errorEmail?: (hasError: boolean) => void;
-  errorPassword?: (hasError: boolean) => void;
-  onPasswordChange?: (value: string) => void;
-  onEmailChange?: (value: string) => void;
-  emailHasError?: boolean;
-  passwordHasError?: boolean;
-  setStateNotifyManager: (notify: NotifyProps | null) => void;
-}
-
 function ModalforAdmin({
   onClose,
   errorEmail,
@@ -306,12 +265,6 @@ function ModalforAdmin({
   );
 }
 
-interface ModalAccountDeleteProps {
-  setDeleting: (deleting: boolean) => void;
-  selectedUser: User;
-  onSaved?: () => Promise<void> | void;
-  setStateNotifyManager: (notify: NotifyProps | null) => void;
-}
 function ModalAccountDelete({
   setDeleting,
   selectedUser,

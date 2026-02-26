@@ -1,3 +1,5 @@
+import { NotifyProps } from './Components/notify';
+
 export type AdminCreateData = {
   message: string;
   adminId: number;
@@ -86,4 +88,42 @@ export interface Admin {
   readonly id: number;
   readonly masterid: boolean;
   readonly email: string;
+}
+
+export interface ModalAccountAddProps {
+  onSaved?: () => Promise<void> | void;
+  setIsAddingAccount: (adding: boolean) => void;
+  onPasswordChange?: (password: string) => void;
+  onConfirmPasswordChange?: (password: string) => void;
+  onEmailChange?: (email: string) => void;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  errorPassword?: (hasError: boolean) => void;
+  errorConfirmPassword?: (hasError: boolean) => void;
+  errorEmail?: (hasError: boolean) => void;
+  emailHasError?: boolean;
+  passwordHasError?: boolean;
+  confirmPasswordHasError?: boolean;
+  setStateNotifyManager: (notify: NotifyProps | null) => void;
+}
+
+export interface ModalAccountDeleteProps {
+  setDeleting: (deleting: boolean) => void;
+  selectedUser: User;
+  onSaved?: () => Promise<void> | void;
+  setStateNotifyManager: (notify: NotifyProps | null) => void;
+}
+
+export interface ModalforAdminProps {
+  onClose: () => void;
+  email?: string;
+  password?: string;
+  errorEmail?: (hasError: boolean) => void;
+  errorPassword?: (hasError: boolean) => void;
+  onPasswordChange?: (value: string) => void;
+  onEmailChange?: (value: string) => void;
+  emailHasError?: boolean;
+  passwordHasError?: boolean;
+  setStateNotifyManager: (notify: NotifyProps | null) => void;
 }
