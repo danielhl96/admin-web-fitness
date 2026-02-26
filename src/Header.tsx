@@ -6,7 +6,7 @@ function Header({
 }: {
   setIsAdminView: (value: boolean) => void;
 }) {
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(false);
   const navigate = useNavigate();
   async function logout() {
     console.log('Logging out...');
@@ -27,27 +27,49 @@ function Header({
   return (
     <div className="navbar  bg-black shadow-sm">
       <div className={'navbar-start'}>
-        <div className="dropdown">
-          <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              {' '}
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16M4 18h7"
-              />{' '}
-            </svg>
-          </div>
+        <div className={`dropdown ${isHeaderVisible ? 'dropdown-open' : ''}`}>
+          <button
+            className="btn btn-ghost text-white"
+            onClick={() => setIsHeaderVisible(!isHeaderVisible)}
+            aria-label="Toggle menu"
+          >
+            {isHeaderVisible ? (
+              // X-Icon
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            ) : (
+              // Hamburger-Icon
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            )}
+          </button>
           <ul
-            tabIndex="-1"
-            className={`menu menu-sm dropdown-content hidden ${!isHeaderVisible ? '' : 'lg:flex'} bg-black rounded-box z-1 mt-3 w-52 p-2 shadow`}
+            tabIndex={0}
+            className={`menu menu-sm dropdown-content hidden ${isHeaderVisible ? '' : ''} bg-black rounded-box z-1 mt-3 w-52 p-2 shadow`}
           >
             <li>
               <a>Dashboard</a>

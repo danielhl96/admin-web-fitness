@@ -1,9 +1,9 @@
 import Header from './Header.tsx';
 import TemplateCards from './TemplateCards.tsx';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useEffect, useState } from 'react';
 import Button from './Button.tsx';
-
+import AdminCard from './AdminCard.tsx';
 import { UI_STATE } from './types.ts';
 import { NotifyProps } from './notify.tsx';
 import { Admin, User, Meal, Exercises, UserCredentials } from './types.ts';
@@ -12,7 +12,6 @@ import {
   handlePasswordChange,
   handleAccountDelete,
   handleAdminDelete,
-  handleLockToggle,
   handleAdminCreate,
   handleGeneratePassword,
   fetchAdmins,
@@ -21,28 +20,19 @@ import {
   fetchUsers,
   handleCreateUser,
 } from './api.ts';
-import {
-  FaEye,
-  FaEdit,
-  FaTrash,
-  FaLock,
-  FaUnlock,
-  FaPlus,
-  FaKey,
-} from 'react-icons/fa';
+import { FaPlus, FaKey } from 'react-icons/fa';
 import Notify from './notify.tsx';
 import EmailInput from './emailinput.tsx';
 import PasswordInput from './passwordinput.tsx';
-
-function isSuccessResponse<T>(
-  response: ApiResponse<T>
-): response is { status: 'success'; data: T } {
-  return response.status === 'success';
-}
+import UserCard from './UserCard.tsx';
+import isSuccessResponse from './isSuccessResponse.tsx';
 
 function useUserCredential(): {
   userCredentials: UserCredentials;
-  handleChange: (field: keyof UserCredentials, value: string) => void;
+  handleChange: (
+    field: keyof UserCredentials,
+    value: string | undefined
+  ) => void;
   resetUserCredentials: () => void;
 } {
   const [userCredentials, setUserCredentials] = useState<UserCredentials>({
@@ -51,8 +41,11 @@ function useUserCredential(): {
     confirmPassword: '',
   });
 
-  const handleChange = (field: keyof UserCredentials, value: string) => {
-    setUserCredentials((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (
+    field: keyof UserCredentials,
+    value: string | undefined
+  ) => {
+    setUserCredentials((prev) => ({ ...prev, [field]: value || '' }));
   };
 
   const resetUserCredentials = () => {
@@ -81,10 +74,6 @@ function getActivityLevelString(level: string | null | undefined): string {
       return 'Unknown';
   }
 }
-
-type ApiResponse<T> =
-  | { status: 'success'; data: T }
-  | { status: 'error'; message: string };
 
 function getGoalString(goal: string | null | undefined): string {
   if (goal == null) return 'N/A';
@@ -367,7 +356,6 @@ function ModalAccountDelete({
         Are you sure you want to delete the account with following email:{' '}
         {selectedUser?.email}? This action cannot be undone.
       </p>
-      <div className="divider divider-primary"></div>
       <div className="flex flex-row gap-2 justify-center mt-4">
         <Button
           onClick={async () => {
@@ -533,7 +521,11 @@ function ModalPasswordChange({
         />
         <div className="flex flex-row text-white text-sm gap-2">
           <PasswordInput
-            value={userCredentials.confirmPassword}
+            value={
+              userCredentials.confirmPassword
+                ? userCredentials.confirmPassword
+                : ''
+            }
             onChange={(value) => handleChange('confirmPassword', value)}
             placeholder="Confirm New Password"
             onError={errorConfirmPassword}
@@ -606,6 +598,11 @@ function ModalUserView({
   onClose,
 }: ModalUserViewProps): React.ReactElement | null {
   if (!user) return null;
+  const activityLevel = useMemo(
+    () => getActivityLevelString(user.activity_level),
+    [user.activity_level]
+  );
+  const goalString = useMemo(() => getGoalString(user.goal), [user.goal]);
   return (
     <TemplateModal title="User View">
       <div className="divider divider-primary"></div>
@@ -623,9 +620,9 @@ function ModalUserView({
         <span className="font-bold">Gender:</span>
         <span>{user.gender || 'N/A'}</span>
         <span className="font-bold">Activity Level:</span>
-        <span>{getActivityLevelString(user.activity_level)}</span>
+        <span>{activityLevel || 'N/A'}</span>
         <span className="font-bold">Goals:</span>
-        <span>{getGoalString(user.goal) || 'N/A'}</span>
+        <span>{goalString || 'N/A'}</span>
         <span className="font-bold">Body Fat Percentage:</span>
         <span>{user.bfp != null ? `${user.bfp}%` : 'N/A'}</span>
         <span className="font-bold">Waist Circumference:</span>
@@ -691,106 +688,24 @@ function Dashboard() {
   const [stateNotifyManager, setStateNotifyManager] =
     useState<NotifyProps | null>(null);
 
-  function AdminCard(admin: Admin): JSX.Element {
-    return (
-      <div className="card w-56 bg-black/10 backdrop-blur-md border border-white/20 shadow-xl">
-        <h2 className="text-center text-blue-500">Admin</h2>
-        <p className="text-center text-xs">Mail: {admin.email}</p>
-        <div className="flex flex-row gap-2 m-2 items-center justify-center">
-          <Button
-            onClick={() => {
-              setIsAdminDeleting(true);
-              setSelectedAdmin(admin);
-            }}
-            w="w-11"
-            border="#3B82F6"
-          >
-            <FaTrash size={20} />
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  function UserCard(user: User, onView: () => void): JSX.Element {
-    return (
-      <div className="card w-56 bg-black/10 backdrop-blur-md border border-white/20 shadow-xl">
-        <h2 className="text-center text-blue-500">User</h2>
-        <p className="text-center text-xs">Mail: {user.email}</p>
-        <div className="flex flex-row gap-2 m-2 items-center justify-center">
-          <Button onClick={onView} w="w-11" border="#3B82F6">
-            <FaEye size={20} />
-          </Button>
-          <Button
-            onClick={() => {
-              setIsEditing(true);
-              setSelectedUser(user);
-            }}
-            w="w-11"
-            border="#3B82F6"
-          >
-            <FaEdit size={20} />
-          </Button>
-          <Button
-            onClick={() => {
-              setIsDeleting(true);
-              setSelectedUser(user);
-            }}
-            w="w-11"
-            border="#3B82F6"
-          >
-            <FaTrash size={20} />
-          </Button>
-          <Button
-            onClick={async () => {
-              const updatedLockedStatus = !user.locked;
-
-              const response = await handleLockToggle(
-                user.id,
-                updatedLockedStatus
-              );
-
-              if (!isSuccessResponse(response)) {
-                console.error(
-                  'Failed to toggle lock status:',
-                  response.message
-                );
-                return;
-              }
-
-              setStateNotifyManager({
-                title: 'Success',
-                message: response.data.message,
-                type: 'success',
-              });
-
-              // Update the users list to reflect the change immediately
-              setUsers((prevUsers) =>
-                prevUsers.map((u) =>
-                  u.id === user.id ? { ...u, locked: updatedLockedStatus } : u
-                )
-              );
-            }}
-            w="w-11"
-            border="#3B82F6"
-          >
-            {user.locked ? <FaLock size={20} /> : <FaUnlock size={20} />}
-          </Button>
-        </div>
-      </div>
-    );
-  }
   const loadData = async () => {
-    setUserInterfaceState({ type: 'loading' });
-    const [usersResponse, exercisesResponse, mealsResponse, adminsResponse] =
-      await Promise.all([
-        fetchUsers(),
-        fetchExercises(),
-        fetchMeals(),
-        fetchAdmins(),
-      ]);
+    const results = await Promise.allSettled([
+      fetchUsers(),
+      fetchExercises(),
+      fetchMeals(),
+      fetchAdmins(),
+    ]);
 
-    if (isSuccessResponse(usersResponse)) {
+    const usersResponse =
+      results[0].status === 'fulfilled' ? results[0].value : null;
+    const exercisesResponse =
+      results[1].status === 'fulfilled' ? results[1].value : null;
+    const mealsResponse =
+      results[2].status === 'fulfilled' ? results[2].value : null;
+    const adminsResponse =
+      results[3].status === 'fulfilled' ? results[3].value : null;
+
+    if (usersResponse && isSuccessResponse(usersResponse)) {
       setUsers(usersResponse.data.users);
       setUserInterfaceState({
         type: 'success',
@@ -799,7 +714,8 @@ function Dashboard() {
     } else {
       setUserInterfaceState({ type: 'error', error: 'Failed to fetch users' });
     }
-    if (isSuccessResponse(exercisesResponse)) {
+
+    if (exercisesResponse && isSuccessResponse(exercisesResponse)) {
       setExercises(exercisesResponse.data.exercises);
       setExerciseInterfaceState({
         type: 'success',
@@ -811,7 +727,8 @@ function Dashboard() {
         error: 'Failed to fetch exercises',
       });
     }
-    if (isSuccessResponse(mealsResponse)) {
+
+    if (mealsResponse && isSuccessResponse(mealsResponse)) {
       setMealInterfaceState({
         type: 'success',
         data: mealsResponse.data.meals,
@@ -822,7 +739,8 @@ function Dashboard() {
         error: 'Failed to fetch meals',
       });
     }
-    if (isSuccessResponse(adminsResponse)) {
+
+    if (adminsResponse && isSuccessResponse(adminsResponse)) {
       setAdmins(adminsResponse.data.admins);
       setAdminInterfaceState({
         type: 'success',
@@ -837,21 +755,38 @@ function Dashboard() {
   };
 
   const helpfetchUsers = useCallback(async () => {
-    const response = await fetchUsers();
-    if (isSuccessResponse(response)) {
-      setUsers(response.data.users);
-      setUserInterfaceState({ type: 'success', data: response.data.users });
-    } else {
+    try {
+      setUserInterfaceState({ type: 'loading' });
+      const response = await fetchUsers();
+      if (isSuccessResponse(response)) {
+        setUsers(response.data.users);
+        setUserInterfaceState({ type: 'success', data: response.data.users });
+      } else {
+        setUserInterfaceState({
+          type: 'error',
+          error: 'Failed to fetch users',
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching users:', err);
       setUserInterfaceState({ type: 'error', error: 'Failed to fetch users' });
     }
   }, []);
 
   const helpfetchAdmins = useCallback(async () => {
-    const response = await fetchAdmins();
-    if (isSuccessResponse(response)) {
-      setAdmins(response.data.admins);
-      setAdminInterfaceState({ type: 'success', data: response.data.admins });
-    } else {
+    try {
+      const response = await fetchAdmins();
+      if (isSuccessResponse(response)) {
+        setAdmins(response.data.admins);
+        setAdminInterfaceState({ type: 'success', data: response.data.admins });
+      } else {
+        setAdminInterfaceState({
+          type: 'error',
+          error: 'Failed to fetch admins',
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching admins:', err);
       setAdminInterfaceState({
         type: 'error',
         error: 'Failed to fetch admins',
@@ -861,6 +796,11 @@ function Dashboard() {
 
   useEffect(() => {
     loadData();
+  }, []);
+
+  const handleViewUser = useCallback((u: User) => {
+    setSelectedUser(u);
+    setIsModalOpen(true);
   }, []);
 
   return (
@@ -887,10 +827,16 @@ function Dashboard() {
               {userInterfaceState.type === 'success' &&
                 users.map((u, index) => (
                   <div key={u.id || index} className="mb-2">
-                    {UserCard(u, () => {
-                      setSelectedUser(u);
-                      setIsModalOpen(true);
-                    })}
+                    {UserCard(
+                      u,
+                      setSelectedUser,
+                      setIsEditing,
+
+                      setIsDeleting,
+                      setStateNotifyManager,
+                      setUsers,
+                      () => handleViewUser(u)
+                    )}
                   </div>
                 ))}
               {userInterfaceState.type === 'loading' && (
@@ -899,10 +845,7 @@ function Dashboard() {
                 </div>
               )}
               {userInterfaceState.type === 'error' && (
-                <p
-                  className="text-red-500 t
-                ext-center"
-                >
+                <p className="text-red-500 text-center">
                   {userInterfaceState.error}
                 </p>
               )}
@@ -928,7 +871,7 @@ function Dashboard() {
               {adminInterfaceState.type === 'success' &&
                 adminInterfaceState.data.map((a, index) => (
                   <div key={a.id || index} className="mb-2">
-                    {AdminCard(a)}
+                    {AdminCard(a, setIsAdminDeleting, setSelectedAdmin)}
                   </div>
                 ))}
               {adminInterfaceState.type === 'loading' && (
