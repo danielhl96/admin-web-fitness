@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 import axios, { AxiosRequestConfig } from 'axios';
-import { Admin, Exercises, Meal, User } from './types';
+import { Admin, Exercises, Meal, User } from '../types';
 
 const PORT = import.meta.env.VITE_PORT || '3000';
 const API_URL = import.meta.env.VITE_API_URL || `http://localhost:${PORT}/api/`;

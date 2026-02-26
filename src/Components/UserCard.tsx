@@ -1,8 +1,8 @@
 import { FaEdit, FaEye, FaLock, FaTrash, FaUnlock } from 'react-icons/fa';
-import { User } from './types';
+import { User } from '../types';
 import Button from './Button';
-import { handleLockToggle } from './api';
-import isSuccessResponse from './isSuccessResponse';
+import { handleLockToggle } from '../utils/api';
+import isSuccessResponse from '../utils/isSuccessResponse';
 
 function UserCard(
   user: User,

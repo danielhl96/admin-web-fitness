@@ -1,12 +1,12 @@
-import Header from './Header.tsx';
-import TemplateCards from './TemplateCards.tsx';
+import Header from '../../Components/Header';
+import TemplateCards from '../../Components/TemplateCards';
 import React, { useCallback, useMemo } from 'react';
 import { useEffect, useState } from 'react';
-import Button from './Button.tsx';
-import AdminCard from './AdminCard.tsx';
-import { UI_STATE } from './types.ts';
-import { NotifyProps } from './notify.tsx';
-import { Admin, User, Meal, Exercises, UserCredentials } from './types.ts';
+import Button from '../../Components/Button';
+import AdminCard from '../../Components/AdminCard';
+import { UI_STATE } from '../../types.ts';
+import { NotifyProps } from '../../Components/notify';
+import { Admin, User, Meal, Exercises, UserCredentials } from '../../types.ts';
 import {
   handleEmailChange,
   handlePasswordChange,
@@ -19,13 +19,14 @@ import {
   fetchMeals,
   fetchUsers,
   handleCreateUser,
-} from './api.ts';
+} from '../../utils/api';
 import { FaPlus, FaKey } from 'react-icons/fa';
-import Notify from './notify.tsx';
-import EmailInput from './emailinput.tsx';
-import PasswordInput from './passwordinput.tsx';
-import UserCard from './UserCard.tsx';
-import isSuccessResponse from './isSuccessResponse.tsx';
+import Notify from '../../Components/notify';
+import EmailInput from '../../Components/emailinput';
+import PasswordInput from '../../Components/passwordinput';
+import UserCard from '../../Components/UserCard';
+import isSuccessResponse from '../../utils/isSuccessResponse';
+import { getActivityLevelString, getGoalString } from './HelperFunctions';
 const NOTIFICATION_DURATION = 2000; // ms
 function useUserCredential(): {
   userCredentials: UserCredentials;
@@ -56,38 +57,6 @@ function useUserCredential(): {
     });
   };
   return { userCredentials, handleChange, resetUserCredentials };
-}
-
-function getActivityLevelString(level: string | null | undefined): string {
-  if (level == null) return 'N/A';
-
-  switch (level) {
-    case '1.2':
-      return 'Not Active';
-    case '1.4 ':
-      return 'Light Activity';
-    case '1.7':
-      return 'Active';
-    case '2.0':
-      return 'Very Active';
-    default:
-      return 'Unknown';
-  }
-}
-
-function getGoalString(goal: string | null | undefined): string {
-  if (goal == null) return 'N/A';
-  switch (goal) {
-    case '1':
-      return 'Cut';
-    case '2':
-      return 'Maintain';
-    case '3':
-      return 'Bulk';
-
-    default:
-      return 'Unknown';
-  }
 }
 
 // Top-level modals to avoid remounting on each Dashboard render

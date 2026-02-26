@@ -1,5 +1,5 @@
 import { FaTrash } from 'react-icons/fa';
-import { Admin } from './types';
+import { Admin } from '../types';
 import Button from './Button';
 function AdminCard(
   admin: Admin,

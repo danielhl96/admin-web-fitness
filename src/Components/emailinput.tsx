@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import './index.css';
+import '../index.css';
+
 import { EnvelopeIcon } from '@heroicons/react/24/outline';
 
 interface EmailInputProps {

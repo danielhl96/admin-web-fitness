@@ -1,10 +1,10 @@
-import PasswordInput from './passwordinput';
-import EmailInput from './emailinput';
-import Button from './Button';
+import PasswordInput from '../Components/passwordinput';
+import EmailInput from '../Components/emailinput';
+import Button from '../Components/Button';
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import Header from './HeaderLogout';
+import Header from '../Components/HeaderLogout';
 
 function LoginPage() {
   const navigate = useNavigate();
