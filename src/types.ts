@@ -127,3 +127,28 @@ export interface ModalforAdminProps {
   passwordHasError?: boolean;
   setStateNotifyManager: (notify: NotifyProps | null) => void;
 }
+export interface ModalAdminDeleteProps {
+  setDeleting: (deleting: boolean) => void;
+  selectedAdmin: Admin;
+  onSaved?: () => Promise<void> | void;
+  setStateNotifyManager: (notify: NotifyProps | null) => void;
+}
+
+export interface ModalPasswordChangeProps {
+  userid: number;
+  errorEmail?: (hasError: boolean) => void;
+  errorPassword?: (hasError: boolean) => void;
+  errorConfirmPassword?: (hasError: boolean) => void;
+  emailHasError?: boolean;
+  passwordHasError?: boolean;
+  confirmPasswordHasError?: boolean;
+
+  onClose: () => void;
+  onSaved?: () => Promise<void> | void;
+  setStateNotifyManager: (notify: NotifyProps | null) => void;
+}
+
+export interface ModalUserViewProps {
+  user: User | null;
+  onClose: () => void;
+}

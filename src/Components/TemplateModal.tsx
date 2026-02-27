@@ -1,4 +1,4 @@
-export function TemplateModal({
+function TemplateModal({
   title,
   children,
 }: {
@@ -14,3 +14,5 @@ export function TemplateModal({
     </div>
   );
 }
+
+export default TemplateModal;
