@@ -47,14 +47,16 @@ function ModalAccountAdd({
         />
         <Button
           onClick={async () => {
-            console.log('Generating password...');
             const generated = await handleGeneratePassword();
             if (isSuccessResponse(generated)) {
-              console.log(generated.data.password);
               handleChange('password', generated.data.password);
               handleChange('confirmPassword', generated.data.password);
             } else {
-              console.error('Password generation failed:', generated.message);
+              setStateNotifyManager({
+                title: 'Error',
+                message: 'Password generation failed',
+                type: 'error',
+              });
             }
           }}
           w="sm:w-28 w-28"
@@ -82,9 +84,8 @@ function ModalAccountAdd({
                   userCredentials.email || '',
                   userCredentials.password || ''
                 );
-                console.log('Create account response:', response);
+
                 if (!isSuccessResponse(response)) {
-                  console.error('Account creation failed:', response.message);
                   return;
                 }
                 setStateNotifyManager({
@@ -99,7 +100,11 @@ function ModalAccountAdd({
 
                 setIsAddingAccount(false);
               } catch (err) {
-                console.error('Create account failed', err);
+                setStateNotifyManager({
+                  title: 'Error',
+                  message: 'Account creation failed',
+                  type: 'error',
+                });
               }
             }}
             w="sm:w-auto w-12"
