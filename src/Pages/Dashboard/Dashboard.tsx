@@ -7,7 +7,6 @@ import AdminCard from '../../Components/AdminCard';
 import { UI_STATE } from '../../types.ts';
 import { NotifyProps } from '../../Components/notify';
 import { Admin, User, Meal, Exercises } from '../../types.ts';
-
 import {
   fetchAdmins,
   fetchExercises,
@@ -16,36 +15,38 @@ import {
 } from '../../utils/api';
 import { FaPlus } from 'react-icons/fa';
 import Notify from '../../Components/notify';
-
 import ModalforAdmin from '../../Components/ModalforAdmin.tsx';
 import ModalPasswordChange from '../../Components/ModalPasswordChange.tsx';
 import UserCard from '../../Components/UserCard';
 import isSuccessResponse from '../../utils/isSuccessResponse';
-
 import ModalAccountAdd from '../../Components/ModalAccountAdd';
 import ModalAccountDelete from '../../Components/ModalAccountDelete.tsx';
 import ModalAdminDelete from '../../Components/ModalAdminDelete.tsx';
 import ModalUserView from '../../Components/ModalUserView.tsx';
+
 const NOTIFICATION_DURATION = 2000; // ms
 
-// Top-level modals to avoid remounting on each Dashboard render
-
 function Dashboard() {
+  // State for managing users data and UI state
   const [users, setUsers] = useState<readonly User[]>([]);
   const [exercises, setExercises] = useState<readonly Exercises[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  // Modal visibility states
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  // Error states for form validation
   const [passwordError, setPasswordError] = useState<boolean>(false);
   const [confirmPasswordError, setConfirmPasswordError] =
     useState<boolean>(false);
   const [emailError, setEmailError] = useState<boolean>(false);
+  // Account and admin management states
   const [isAddingAccount, setIsAddingAccount] = useState<boolean>(false);
   const [isAdminView, setIsAdminView] = useState<boolean>(false);
   const [admins, setAdmins] = useState<readonly Admin[]>([]);
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
   const [isAdminDeleting, setIsAdminDeleting] = useState<boolean>(false);
+  // UI states for different data types
   const [userInterfaceState, setUserInterfaceState] = useState<
     UI_STATE<readonly User[]>
   >({
@@ -67,9 +68,11 @@ function Dashboard() {
     type: 'loading',
   });
 
+  // Notification state for displaying messages
   const [stateNotifyManager, setStateNotifyManager] =
     useState<NotifyProps | null>(null);
 
+  // Function to load all data (users, exercises, meals, admins) from API
   const loadData = async () => {
     const results = await Promise.allSettled([
       fetchUsers(),
@@ -136,6 +139,7 @@ function Dashboard() {
     }
   };
 
+  // Helper function to fetch users data
   const helpfetchUsers = useCallback(async () => {
     try {
       setUserInterfaceState({ type: 'loading' });
@@ -176,15 +180,18 @@ function Dashboard() {
     }
   }, []);
 
+  // Load initial data on component mount
   useEffect(() => {
     loadData();
   }, []);
 
+  // Handler to view user details
   const handleViewUser = useCallback((u: User) => {
     setSelectedUser(u);
     setIsModalOpen(true);
   }, []);
 
+  // Render the dashboard UI
   return (
     <div className="min-h-[100dvh] bg-gradient-to-b from-gray-900 to-black ">
       <Header setIsAdminView={setIsAdminView} />
@@ -364,6 +371,7 @@ function Dashboard() {
           setStateNotifyManager={setStateNotifyManager}
         />
       )}
+      {/* Conditional rendering of modals based on state */}
       {isAddingAccount && (
         <ModalAccountAdd
           setIsAddingAccount={setIsAddingAccount}
