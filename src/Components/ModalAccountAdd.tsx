@@ -86,6 +86,12 @@ function ModalAccountAdd({
                 );
 
                 if (!isSuccessResponse(response)) {
+                  setStateNotifyManager({
+                    title: 'Error',
+                    message: 'Account creation failed',
+                    type: 'error',
+                  });
+
                   return;
                 }
                 setStateNotifyManager({
