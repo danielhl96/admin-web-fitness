@@ -66,18 +66,10 @@ export const refreshAdminToken = async (adminId: number) => {
   if (!admin) {
     throw new Error('Admin not found');
   }
-  return admin;
-};
 
-export const logoutAdmin = async (adminId: number) => {
-  const admin = await adminPrisma.admins.findUnique({
-    where: {
-      id: adminId,
-    },
+  const token = jwt.sign({ adminId: admin.id }, process.env.JWT_SECRET!, {
+    expiresIn: '1h',
   });
 
-  if (!admin) {
-    throw new Error('Admin not found');
-  }
-  return admin;
+  return token;
 };

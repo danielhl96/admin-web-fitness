@@ -4,7 +4,8 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { Admin, Exercises, Meal, User } from '../types';
 
 const PORT = import.meta.env.VITE_PORT || '3000';
-const API_URL = import.meta.env.VITE_API_URL || `http://localhost:${PORT}/api/`;
+const API_URL =
+  import.meta.env.VITE_API_URL || `http://localhost:${PORT}/api/users/`;
 const API_ADMIN_URL =
   import.meta.env.VITE_API_ADMIN_URL || `http://localhost:${PORT}/admins/`;
 
@@ -82,7 +83,8 @@ export async function handleAccountDelete(
 ): Promise<ApiResponse<AccountDeleteData>> {
   const response = await apiRequest<AccountDeleteData>(
     'delete',
-    `${API_URL}user/${userId}`
+    `${API_URL}
+    ${userId}/delete`
   );
 
   return response;
@@ -113,7 +115,7 @@ export async function handleLockToggle(
 ): Promise<ApiResponse<LockToggleData>> {
   const response = await apiRequest<LockToggleData>(
     'put',
-    `${API_URL}user_lock/${userId}`,
+    `${API_URL}${userId}/user_lock`,
     { locked }
   );
 
@@ -165,7 +167,7 @@ export async function fetchUsers(): Promise<
 > {
   const response = await apiRequest<{ users: readonly User[] }>(
     'get',
-    `${API_URL}users`
+    `${API_URL}`
   );
   return response;
 }

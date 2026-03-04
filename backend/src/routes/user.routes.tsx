@@ -12,10 +12,10 @@ import middleware from '../middleware/verifyAdmin';
 const router = express.Router();
 
 router.post('/registerusers', middleware, createUserController);
-router.delete('/users/:id', middleware, deleteUserController);
+router.delete('/users/:id/delete', middleware, deleteUserController);
 router.put('/users/:id/email', middleware, updateUserMailController);
 router.put('/users/:id/password', middleware, updateUserPasswordController);
-router.put('/users/:id/lockout', middleware, setUserLockoutController);
+router.put('/users/:id/user_lock', middleware, setUserLockoutController);
 router.get('/users', middleware, fetchUsersController);
 
 export default router;

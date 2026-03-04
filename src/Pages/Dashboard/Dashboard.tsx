@@ -29,7 +29,7 @@ const NOTIFICATION_DURATION = 2000; // ms
 function Dashboard() {
   // State for managing users data and UI state
   const [users, setUsers] = useState<readonly User[]>([]);
-  const [exercises, setExercises] = useState<readonly Exercises[]>([]);
+
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   // Modal visibility states
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -43,7 +43,7 @@ function Dashboard() {
   // Account and admin management states
   const [isAddingAccount, setIsAddingAccount] = useState<boolean>(false);
   const [isAdminView, setIsAdminView] = useState<boolean>(false);
-  const [admins, setAdmins] = useState<readonly Admin[]>([]);
+
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
   const [isAdminDeleting, setIsAdminDeleting] = useState<boolean>(false);
   // UI states for different data types
@@ -104,7 +104,6 @@ function Dashboard() {
     }
 
     if (exercisesResponse && isSuccessResponse(exercisesResponse)) {
-      setExercises(exercisesResponse.data.exercises);
       console.log('Fetched exercises:', exercisesResponse.data.exercises);
       setExerciseInterfaceState({
         type: 'success',
@@ -131,7 +130,6 @@ function Dashboard() {
     }
 
     if (adminsResponse && isSuccessResponse(adminsResponse)) {
-      setAdmins(adminsResponse.data.admins);
       console.log('Fetched admins:', adminsResponse.data.admins);
       setAdminInterfaceState({
         type: 'success',
@@ -169,7 +167,6 @@ function Dashboard() {
     try {
       const response = await fetchAdmins();
       if (isSuccessResponse(response)) {
-        setAdmins(response.data.admins);
         setAdminInterfaceState({ type: 'success', data: response.data.admins });
       } else {
         setAdminInterfaceState({

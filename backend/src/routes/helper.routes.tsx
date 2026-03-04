@@ -6,7 +6,7 @@ import {
 import middleware from '../middleware/verifyAdmin';
 const router = express.Router();
 
-router.get('/meals', middleware, getMealsController);
-router.get('/exercises', middleware, getExercisesController);
+router.get('/users/meals', middleware, getMealsController);
+router.get('/users/exercises', middleware, getExercisesController);
 
 export default router;

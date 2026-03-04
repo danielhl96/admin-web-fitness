@@ -23,7 +23,6 @@ export const createUserController = async (req: Request, res: Response) => {
       user: { id: user.id, email: user.email },
     });
   } catch (error) {
-    console.error('Error creating user:', error);
     res.status(500).json({ message: 'Error creating user' });
   }
 };
@@ -31,9 +30,8 @@ export const createUserController = async (req: Request, res: Response) => {
 export const fetchUsersController = async (req: Request, res: Response) => {
   try {
     const users = await fetchUsers();
-    res.status(200).json({ users });
+    res.status(200).json({ message: 'Users fetched successfully', users });
   } catch (error) {
-    console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Error fetching users' });
   }
 };
@@ -50,7 +48,6 @@ export const deleteUserController = async (req: Request, res: Response) => {
     await deleteUser(userId);
     res.status(200).json({ message: 'User deleted successfully' });
   } catch (error) {
-    console.error('Error deleting user:', error);
     res.status(500).json({ message: 'Error deleting user' });
   }
 };
@@ -68,7 +65,6 @@ export const updateUserMailController = async (req: Request, res: Response) => {
     await updateUserMail(userId, email);
     res.status(200).json({ message: 'User email updated successfully' });
   } catch (error) {
-    console.error('Error updating user email:', error);
     res.status(500).json({ message: 'Error updating user email' });
   }
 };
@@ -89,7 +85,6 @@ export const updateUserPasswordController = async (
     await updateUserPassword(userId, password);
     res.status(200).json({ message: 'User password updated successfully' });
   } catch (error) {
-    console.error('Error updating user password:', error);
     res.status(500).json({ message: 'Error updating user password' });
   }
 };
@@ -112,7 +107,6 @@ export const getUserByIdController = async (req: Request, res: Response) => {
       user: { id: user.id, email: user.email, locked: user.locked },
     });
   } catch (error) {
-    console.error('Error retrieving user:', error);
     res.status(500).json({ message: 'Error retrieving user' });
   }
 };
@@ -134,7 +128,6 @@ export const setUserLockoutController = async (req: Request, res: Response) => {
       .status(200)
       .json({ message: `User lockout status updated to ${locked}` });
   } catch (error) {
-    console.error('Error updating user lockout status:', error);
     res.status(500).json({ message: 'Error updating user lockout status' });
   }
 };

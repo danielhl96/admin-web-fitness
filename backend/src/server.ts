@@ -69,6 +69,34 @@ app.use('/api', helperRoutes);
 app.use('/api', userRoutes);
 app.use('/', adminRoutes);
 
+const firstStartup = async (): Promise<void> => {
+  try {
+    const admin = await adminPrisma.admins.findFirst({
+      where: { masterid: true },
+    });
+    console.log('Admin user check completed: ', admin);
+
+    if (!admin) {
+      const hashedPassword = await argon2.hash(ADMIN_PASSWORD, {
+        timeCost: 3,
+        memoryCost: 256,
+        parallelism: 4,
+        hashLength: 32,
+        type: argon2.argon2id,
+      });
+      await adminPrisma.admins.create({
+        data: {
+          email: ADMIN_EMAIL,
+          password: hashedPassword,
+          masterid: true,
+        },
+      });
+    }
+  } catch (error) {
+    console.error('Error during first startup:', error);
+  }
+};
+
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
   adminPrisma
@@ -79,26 +107,6 @@ app.listen(PORT, async () => {
     .catch((error) => {
       console.error('Admin Prisma connection failed:', error);
     });
-  const admin = await adminPrisma.admins.findFirst({
-    where: { masterid: true },
-  });
-  console.log('Admin user check completed: ', admin);
-
-  if (!admin) {
-    const hashedPassword = await argon2.hash(ADMIN_PASSWORD, {
-      timeCost: 3,
-      memoryCost: 256,
-      parallelism: 4,
-      hashLength: 32,
-      saltLength: 16,
-      type: argon2.argon2id,
-    });
-    await adminPrisma.admins.create({
-      data: {
-        email: ADMIN_EMAIL,
-        password: hashedPassword,
-        masterid: true,
-      },
-    });
-  }
+  await firstStartup();
+  await adminPrisma.$disconnect();
 });

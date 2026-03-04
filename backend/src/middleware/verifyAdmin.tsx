@@ -1,6 +1,11 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
+
 const verifyAdmin = (
   req: express.Request,
   res: express.Response,
@@ -12,11 +17,13 @@ const verifyAdmin = (
     return res.status(401).json({ error: 'Unauthorized' });
   }
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as {
+    const decoded = jwt.verify(token, JWT_SECRET) as jwt.JwtPayload & {
       adminId: number;
-      email: string;
     };
-    (req as any).admin = decoded;
+    if (!decoded.adminId || typeof decoded.adminId !== 'number') {
+      return res.status(401).json({ error: 'Invalid token payload' });
+    }
+    (req as any).admin = { adminId: decoded.adminId };
     next();
   } catch (error) {
     return res.status(401).json({ error: 'Invalid token' });
