@@ -1,0 +1,21 @@
+import express from 'express';
+import {
+  createUserController,
+  deleteUserController,
+  updateUserMailController,
+  updateUserPasswordController,
+  setUserLockoutController,
+  fetchUsersController,
+} from '../controller/user.controller';
+import middleware from '../middleware/verifyAdmin';
+
+const router = express.Router();
+
+router.post('/registerusers', middleware, createUserController);
+router.delete('/users/:id', middleware, deleteUserController);
+router.put('/users/:id/email', middleware, updateUserMailController);
+router.put('/users/:id/password', middleware, updateUserPasswordController);
+router.put('/users/:id/lockout', middleware, setUserLockoutController);
+router.get('/users', middleware, fetchUsersController);
+
+export default router;

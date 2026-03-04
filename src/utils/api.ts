@@ -156,10 +156,7 @@ type AdminResponse = {
   readonly admins: readonly Admin[];
 };
 export async function fetchAdmins(): Promise<ApiResponse<AdminResponse>> {
-  const response = await apiRequest<AdminResponse>(
-    'get',
-    `${API_ADMIN_URL}get`
-  );
+  const response = await apiRequest<AdminResponse>('get', `${API_ADMIN_URL}`);
   return response;
 }
 

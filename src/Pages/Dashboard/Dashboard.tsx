@@ -81,6 +81,7 @@ function Dashboard() {
       fetchAdmins(),
     ]);
 
+    console.log('Data fetch results:', results);
     const usersResponse =
       results[0].status === 'fulfilled' ? results[0].value : null;
     const exercisesResponse =
@@ -91,7 +92,9 @@ function Dashboard() {
       results[3].status === 'fulfilled' ? results[3].value : null;
 
     if (usersResponse && isSuccessResponse(usersResponse)) {
+      console.log('Fetched users:', usersResponse.data.users);
       setUsers(usersResponse.data.users);
+
       setUserInterfaceState({
         type: 'success',
         data: usersResponse.data.users,
@@ -102,6 +105,7 @@ function Dashboard() {
 
     if (exercisesResponse && isSuccessResponse(exercisesResponse)) {
       setExercises(exercisesResponse.data.exercises);
+      console.log('Fetched exercises:', exercisesResponse.data.exercises);
       setExerciseInterfaceState({
         type: 'success',
         data: exercisesResponse.data.exercises,
@@ -114,6 +118,7 @@ function Dashboard() {
     }
 
     if (mealsResponse && isSuccessResponse(mealsResponse)) {
+      console.log('Fetched meals:', mealsResponse.data.meals);
       setMealInterfaceState({
         type: 'success',
         data: mealsResponse.data.meals,
@@ -127,6 +132,7 @@ function Dashboard() {
 
     if (adminsResponse && isSuccessResponse(adminsResponse)) {
       setAdmins(adminsResponse.data.admins);
+      console.log('Fetched admins:', adminsResponse.data.admins);
       setAdminInterfaceState({
         type: 'success',
         data: adminsResponse.data.admins,
@@ -209,9 +215,7 @@ function Dashboard() {
                 <FaPlus size={12} />
               </Button>
             </div>
-            <div className="divider divider-primary">
-              Registered Users: {users.length}
-            </div>
+            <div className="divider divider-primary">Registered Users: {0}</div>
             <div className="flex flex-col items-center space-y-2 w-full overflow-y-auto max-h-[20dvh] lg:max-h-[50dvh] ">
               {userInterfaceState.type === 'success' &&
                 users.map((u, index) => (
@@ -254,7 +258,7 @@ function Dashboard() {
               </Button>
             </div>
             <div className="divider divider-primary">
-              Registered Admins: {admins.length}
+              Registered Admins: {0}
             </div>
             <div className="flex flex-col items-center space-y-2 w-full overflow-y-auto max-h-[20dvh] lg:max-h-[50dvh]">
               {adminInterfaceState.type === 'success' &&
@@ -278,7 +282,10 @@ function Dashboard() {
 
           <TemplateCards title="Statistics Exercises">
             <div className="divider divider-primary">
-              Logged Exercises: {exercises.length}
+              Logged Exercises:{' '}
+              {exerciseInterfaceState.type === 'success'
+                ? exerciseInterfaceState.data.length
+                : 0}
             </div>
             <div className="flex flex-col overflow-y-auto items-center w-full max-h-[20dvh] lg:max-h-[50dvh]">
               {exerciseInterfaceState.type === 'success' &&

@@ -1,0 +1,83 @@
+import { adminPrisma } from '../prisma/adminPrisma';
+import argon2 from 'argon2';
+import jwt from 'jsonwebtoken';
+
+export const fetchAdmins = async () => {
+  return await adminPrisma.admins.findMany();
+};
+
+const hashPassword = async (password: string): Promise<string> => {
+  return await argon2.hash(password, {
+    timeCost: 3,
+    memoryCost: 256,
+    parallelism: 4,
+    hashLength: 32,
+    type: argon2.argon2id,
+  });
+};
+
+export const registerAdmin = async (email: string, password: string) => {
+  return await adminPrisma.admins.create({
+    data: {
+      email: email,
+      password: await hashPassword(password),
+    },
+  });
+};
+export const deleteAdmin = async (id: number) => {
+  return await adminPrisma.admins.delete({
+    where: {
+      id,
+    },
+  });
+};
+
+export const loginAdmin = async (email: string, password: string) => {
+  const admin = await adminPrisma.admins.findUnique({
+    where: {
+      email,
+    },
+  });
+
+  if (!admin) {
+    throw new Error('Admin not found');
+  }
+
+  const isPasswordValid = await argon2.verify(admin.password, password);
+
+  if (!isPasswordValid) {
+    throw new Error('Invalid password');
+  }
+
+  const token = jwt.sign({ adminId: admin.id }, process.env.JWT_SECRET!, {
+    expiresIn: '1h',
+  });
+
+  return token;
+};
+
+export const refreshAdminToken = async (adminId: number) => {
+  const admin = await adminPrisma.admins.findUnique({
+    where: {
+      id: adminId,
+    },
+  });
+
+  if (!admin) {
+    throw new Error('Admin not found');
+  }
+  return admin;
+};
+
+export const logoutAdmin = async (adminId: number) => {
+  const admin = await adminPrisma.admins.findUnique({
+    where: {
+      id: adminId,
+    },
+  });
+
+  if (!admin) {
+    throw new Error('Admin not found');
+  }
+  return admin;
+};
