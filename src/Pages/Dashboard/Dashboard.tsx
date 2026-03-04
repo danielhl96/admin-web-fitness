@@ -215,7 +215,12 @@ function Dashboard() {
                 <FaPlus size={12} />
               </Button>
             </div>
-            <div className="divider divider-primary">Registered Users: {0}</div>
+            <div className="divider divider-primary">
+              Registered Users:{' '}
+              {userInterfaceState.type === 'success'
+                ? userInterfaceState.data.length
+                : 0}
+            </div>
             <div className="flex flex-col items-center space-y-2 w-full overflow-y-auto max-h-[20dvh] lg:max-h-[50dvh] ">
               {userInterfaceState.type === 'success' &&
                 users.map((u, index) => (
@@ -258,7 +263,10 @@ function Dashboard() {
               </Button>
             </div>
             <div className="divider divider-primary">
-              Registered Admins: {0}
+              Registered Admins:{' '}
+              {adminInterfaceState.type === 'success'
+                ? adminInterfaceState.data.length
+                : 0}
             </div>
             <div className="flex flex-col items-center space-y-2 w-full overflow-y-auto max-h-[20dvh] lg:max-h-[50dvh]">
               {adminInterfaceState.type === 'success' &&
