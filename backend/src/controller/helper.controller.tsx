@@ -1,5 +1,9 @@
 import { Request, Response } from 'express';
-import { fetchMeals, fetchExercises } from '../service/helper.service';
+import {
+  fetchMeals,
+  fetchExercises,
+  generatePassword,
+} from '../service/helper.service';
 
 export const getMealsController = async (req: Request, res: Response) => {
   try {
@@ -19,4 +23,19 @@ export const getExercisesController = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({ message: 'Error fetching exercises' });
   }
+};
+
+export const getGeneratedPasswordController = (req: Request, res: Response) => {
+  try {
+    const password = generatePassword();
+    res
+      .status(200)
+      .json({ message: 'Password generated successfully', password });
+  } catch (error) {
+    res.status(500).json({ message: 'Error generating password' });
+  }
+};
+
+export const healthCheckController = (req: Request, res: Response) => {
+  res.status(200).json({ message: 'API is healthy' });
 };

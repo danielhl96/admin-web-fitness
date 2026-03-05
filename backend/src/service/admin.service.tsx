@@ -1,9 +1,9 @@
-import { adminPrisma } from '../prisma/adminPrisma';
+import { prisma } from '../prisma/Prisma';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 
 export const fetchAdmins = async () => {
-  return await adminPrisma.admins.findMany();
+  return await prisma.admins.findMany();
 };
 
 const hashPassword = async (password: string): Promise<string> => {
@@ -17,7 +17,7 @@ const hashPassword = async (password: string): Promise<string> => {
 };
 
 export const registerAdmin = async (email: string, password: string) => {
-  return await adminPrisma.admins.create({
+  return await prisma.admins.create({
     data: {
       email: email,
       password: await hashPassword(password),
@@ -25,7 +25,7 @@ export const registerAdmin = async (email: string, password: string) => {
   });
 };
 export const deleteAdmin = async (id: number) => {
-  return await adminPrisma.admins.delete({
+  return await prisma.admins.delete({
     where: {
       id,
     },
@@ -33,7 +33,7 @@ export const deleteAdmin = async (id: number) => {
 };
 
 export const loginAdmin = async (email: string, password: string) => {
-  const admin = await adminPrisma.admins.findUnique({
+  const admin = await prisma.admins.findUnique({
     where: {
       email,
     },
@@ -57,7 +57,7 @@ export const loginAdmin = async (email: string, password: string) => {
 };
 
 export const refreshAdminToken = async (adminId: number) => {
-  const admin = await adminPrisma.admins.findUnique({
+  const admin = await prisma.admins.findUnique({
     where: {
       id: adminId,
     },

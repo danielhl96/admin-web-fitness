@@ -11,7 +11,7 @@ import middleware from '../middleware/verifyAdmin';
 
 const router = express.Router();
 
-router.post('/registerusers', middleware, createUserController);
+router.post('/users/register', middleware, createUserController);
 router.delete('/users/:id/delete', middleware, deleteUserController);
 router.put('/users/:id/email', middleware, updateUserMailController);
 router.put('/users/:id/password', middleware, updateUserPasswordController);

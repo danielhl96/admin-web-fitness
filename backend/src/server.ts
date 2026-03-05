@@ -6,7 +6,7 @@ import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
 import argon2 from 'argon2';
 import cookieParser from 'cookie-parser';
-import { adminPrisma } from './prisma/adminPrisma';
+import { prisma } from './prisma/Prisma';
 import adminRoutes from './routes/admin.routes';
 import userRoutes from './routes/user.routes';
 import helperRoutes from './routes/helper.routes';
@@ -15,7 +15,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
-const prisma = new PrismaClient();
 
 // Security middleware
 app.use(helmet());
@@ -71,7 +70,7 @@ app.use('/', adminRoutes);
 
 const firstStartup = async (): Promise<void> => {
   try {
-    const admin = await adminPrisma.admins.findFirst({
+    const admin = await prisma.admins.findFirst({
       where: { masterid: true },
     });
     console.log('Admin user check completed: ', admin);
@@ -84,7 +83,7 @@ const firstStartup = async (): Promise<void> => {
         hashLength: 32,
         type: argon2.argon2id,
       });
-      await adminPrisma.admins.create({
+      await prisma.admins.create({
         data: {
           email: ADMIN_EMAIL,
           password: hashedPassword,
@@ -99,7 +98,7 @@ const firstStartup = async (): Promise<void> => {
 
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
-  adminPrisma
+  prisma
     .$connect()
     .then(() => {
       console.log('Admin Prisma connected');
@@ -108,5 +107,5 @@ app.listen(PORT, async () => {
       console.error('Admin Prisma connection failed:', error);
     });
   await firstStartup();
-  await adminPrisma.$disconnect();
+  await prisma.$disconnect();
 });

@@ -9,6 +9,9 @@ const API_URL =
 const API_ADMIN_URL =
   import.meta.env.VITE_API_ADMIN_URL || `http://localhost:${PORT}/admins/`;
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || `http://localhost:${PORT}/api/`;
+
 type ApiResponse<T> =
   | { status: 'success'; data: T }
   | { status: 'error'; message: string };
@@ -52,7 +55,7 @@ export async function handleEmailChange(
 ): Promise<ApiResponse<{ message: string }>> {
   const response = await apiRequest<{ message: string }>(
     'put',
-    `${API_URL}email/${userId}`,
+    `${API_URL}${userId}/email`,
     { email }
   );
   return response;
@@ -68,7 +71,7 @@ export async function handlePasswordChange(
 ): Promise<ApiResponse<PasswordChangeData>> {
   const response = await apiRequest<PasswordChangeData>(
     'put',
-    `${API_URL}password/${userId}`,
+    `${API_URL}${userId}/password`,
     { password }
   );
   return response;
@@ -149,7 +152,7 @@ export async function handleGeneratePassword(): Promise<
 > {
   const response = await apiRequest<PasswordGenerateData>(
     'get',
-    `${API_URL}createPassword`
+    `${API_BASE_URL}generate-password`
   );
   return response;
 }
@@ -177,7 +180,10 @@ type MealResponse = {
 };
 
 export async function fetchMeals(): Promise<ApiResponse<MealResponse>> {
-  const response = await apiRequest<MealResponse>('get', `${API_URL}meals`);
+  const response = await apiRequest<MealResponse>(
+    'get',
+    `${API_BASE_URL}meals`
+  );
   return response;
 }
 
@@ -190,7 +196,7 @@ export async function fetchExercises(): Promise<
 > {
   const response = await apiRequest<ExercisesResponse>(
     'get',
-    `${API_URL}exercises`
+    `${API_BASE_URL}exercises`
   );
   return response;
 }
