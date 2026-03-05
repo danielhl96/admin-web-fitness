@@ -4,6 +4,7 @@ import {
   fetchExercises,
   generatePassword,
 } from '../service/helper.service';
+import { prisma, prismaUser } from '../prisma/Prisma';
 
 export const getMealsController = async (req: Request, res: Response) => {
   try {
@@ -36,6 +37,21 @@ export const getGeneratedPasswordController = (req: Request, res: Response) => {
   }
 };
 
-export const healthCheckController = (req: Request, res: Response) => {
-  res.status(200).json({ message: 'API is healthy' });
+export const healthCheckController = async (req: Request, res: Response) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    await prismaUser.$queryRaw`SELECT 1`;
+
+    res.status(200).json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      database: 'connected',
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      database: 'disconnected',
+    });
+  }
 };

@@ -6,7 +6,7 @@ import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
 import argon2 from 'argon2';
 import cookieParser from 'cookie-parser';
-import { prisma } from './prisma/Prisma';
+import { prisma, prismaUser } from './prisma/Prisma';
 import adminRoutes from './routes/admin.routes';
 import userRoutes from './routes/user.routes';
 import helperRoutes from './routes/helper.routes';
@@ -55,12 +55,14 @@ app.use(express.urlencoded({ extended: true }));
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully');
   await prisma.$disconnect();
+  await prismaUser.$disconnect();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   console.log('SIGINT received, shutting down gracefully');
   await prisma.$disconnect();
+  await prismaUser.$disconnect();
   process.exit(0);
 });
 
@@ -106,6 +108,13 @@ app.listen(PORT, async () => {
     .catch((error) => {
       console.error('Admin Prisma connection failed:', error);
     });
+  prismaUser
+    .$connect()
+    .then(() => {
+      console.log('User Prisma connected');
+    })
+    .catch((error) => {
+      console.error('User Prisma connection failed:', error);
+    });
   await firstStartup();
-  await prisma.$disconnect();
 });
