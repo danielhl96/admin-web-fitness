@@ -9,6 +9,11 @@ import { prisma, prismaUser } from './prisma/Prisma';
 import adminRoutes from './routes/admin.routes';
 import userRoutes from './routes/user.routes';
 import helperRoutes from './routes/helper.routes';
+import {
+  RATE_LIMIT_WINDOW_MS,
+  RATE_LIMIT_MAX_REQUESTS,
+  BODY_LIMIT,
+} from './constants';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,8 +25,8 @@ app.use(helmet());
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: RATE_LIMIT_WINDOW_MS,
+  max: RATE_LIMIT_MAX_REQUESTS,
   message: 'Too many requests from this IP, please try again later.',
 });
 app.use(limiter);
@@ -43,7 +48,7 @@ app.use(
 );
 
 // Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: BODY_LIMIT }));
 app.use(express.urlencoded({ extended: true }));
 
 // Graceful shutdown

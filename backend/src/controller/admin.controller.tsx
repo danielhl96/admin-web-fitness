@@ -7,6 +7,7 @@ import {
   loginAdmin,
   refreshAdminToken,
 } from '../service/admin.service';
+import { COOKIE_MAX_AGE } from '../constants';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -66,9 +67,9 @@ export const loginAdminController = async (req: Request, res: Response) => {
 
     res.cookie('admin_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === 'production', // Secure in production
       sameSite: 'strict',
-      maxAge: 20 * 60 * 1000, // 20 minutes
+      maxAge: COOKIE_MAX_AGE,
     });
     res.status(200).json({ message: 'Admin logged in successfully', token });
   } catch (error) {
@@ -96,7 +97,7 @@ export const refreshAdminTokenController = async (
   const decoded = jwt.verify(token, JWT_SECRET, {
     ignoreExpiration: true,
     issuer: 'admin-web-fitness',
-    audience: 'admin',
+    audience: 'admin-web-fitness',
   }) as jwt.JwtPayload & { adminId: number };
   if (!decoded || !decoded.adminId || typeof decoded.adminId !== 'number') {
     return res.status(400).json({ message: 'Invalid token' });
@@ -107,9 +108,9 @@ export const refreshAdminTokenController = async (
     const newToken = await refreshAdminToken(adminIdNum);
     res.cookie('admin_token', newToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === 'production', // Secure in production
       sameSite: 'strict',
-      maxAge: 60 * 60 * 1000, // 1 hour
+      maxAge: COOKIE_MAX_AGE,
     });
     res
       .status(200)
