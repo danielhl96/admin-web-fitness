@@ -7,7 +7,7 @@ const PORT = import.meta.env.VITE_PORT || '3000';
 const API_URL =
   import.meta.env.VITE_API_URL || `http://localhost:${PORT}/api/users/`;
 const API_ADMIN_URL =
-  import.meta.env.VITE_API_ADMIN_URL || `http://localhost:${PORT}/admins/`;
+  import.meta.env.VITE_API_ADMIN_URL || `http://localhost:${PORT}/api/admins/`;
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || `http://localhost:${PORT}/api/`;

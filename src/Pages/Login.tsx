@@ -11,7 +11,7 @@ function LoginPage() {
   async function login(email: string, password: string) {
     try {
       const response = await axios.post(
-        'http://localhost:3000/admins/login',
+        'http://localhost:3000/api/admins/login',
         {
           email,
           password,

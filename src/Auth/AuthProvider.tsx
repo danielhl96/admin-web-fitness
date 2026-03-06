@@ -25,7 +25,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const checkAuth = async () => {
     console.log('Checking authentication...');
     try {
-      await axios.get('http://localhost:3000/admins/check_auth', {
+      await axios.get('http://localhost:3000/api/admins/check_auth', {
         withCredentials: true,
       });
       setIsAuthenticated(true);
@@ -33,7 +33,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // If check_auth fails, try refresh_token
       try {
         await axios.post(
-          'http://localhost:3000/admins/refresh_token',
+          'http://localhost:3000/api/admins/refresh_token',
           {},
           {
             withCredentials: true,

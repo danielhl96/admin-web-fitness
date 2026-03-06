@@ -72,14 +72,13 @@ process.on('SIGINT', async () => {
 
 app.use('/api', helperRoutes);
 app.use('/api', userRoutes);
-app.use('/', adminRoutes);
+app.use('/api', adminRoutes);
 
 const firstStartup = async (): Promise<void> => {
   try {
     const admin = await prisma.admins.findFirst({
       where: { masterid: true },
     });
-    console.log('Admin user check completed: ', admin);
 
     if (!admin) {
       const hashedPassword = await argon2.hash(ADMIN_PASSWORD, {
