@@ -109,7 +109,7 @@ export const refreshAdminTokenController = async (
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Secure in production
       sameSite: 'strict',
-      maxAge: 20 * 60 * 1000, // 20 minutes
+      maxAge: 60 * 60 * 1000, // 1 hour
     });
     res
       .status(200)

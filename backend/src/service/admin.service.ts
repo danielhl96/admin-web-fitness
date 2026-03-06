@@ -1,6 +1,8 @@
 import { prisma } from '../prisma/Prisma';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
+import { validateEmail } from '../helper/emailvalid';
+import { validatePassword } from '../helper/passwordvalid';
 
 export const fetchAdmins = async () => {
   return await prisma.admins.findMany();
@@ -17,20 +19,8 @@ const hashPassword = async (password: string): Promise<string> => {
 };
 
 export const registerAdmin = async (email: string, password: string) => {
-  const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  if (!emailIsValid) {
-    throw new Error('Invalid email format');
-  }
-
-  const passwordIsValid =
-    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*'])[A-Za-z\d!@#$%^&*']{8,}$/.test(
-      password
-    );
-  if (!passwordIsValid) {
-    throw new Error(
-      "Password must be at least 8 characters long and contain at least one letter, one number, and one special character (!@#$%^&*')"
-    );
-  }
+  validateEmail(email);
+  validatePassword(password);
 
   return await prisma.admins.create({
     data: {

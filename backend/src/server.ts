@@ -3,7 +3,6 @@ import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import { PrismaClient } from '@prisma/client';
 import argon2 from 'argon2';
 import cookieParser from 'cookie-parser';
 import { prisma, prismaUser } from './prisma/Prisma';

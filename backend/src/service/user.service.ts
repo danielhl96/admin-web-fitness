@@ -1,5 +1,6 @@
-import { prismaUser } from '../prisma/Prisma';
-
+import { prisma, prismaUser } from '../prisma/Prisma';
+import { validateEmail } from '../helper/emailvalid';
+import { validatePassword } from '../helper/passwordvalid';
 import argon2 from 'argon2';
 
 export const fetchUsers = async () => {
@@ -17,6 +18,8 @@ const hashPassword = async (password: string): Promise<string> => {
 };
 
 export const createUser = async (email: string, password: string) => {
+  validateEmail(email);
+  validatePassword(password);
   return await prismaUser.users.create({
     data: {
       email: email,
@@ -34,6 +37,18 @@ export const deleteUser = async (id: number) => {
 };
 
 export const updateUserMail = async (id: number, email: string) => {
+  validateEmail(email);
+
+  const existingMail = await prismaUser.users.findFirst({
+    where: {
+      email,
+      id: { not: id },
+    },
+  });
+  if (existingMail) {
+    throw new Error('Email already in use');
+  }
+
   return await prismaUser.users.update({
     where: {
       id,
@@ -45,6 +60,7 @@ export const updateUserMail = async (id: number, email: string) => {
 };
 
 export const updateUserPassword = async (id: number, password: string) => {
+  validatePassword(password);
   return await prismaUser.users.update({
     where: {
       id,
