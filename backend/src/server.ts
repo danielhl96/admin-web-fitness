@@ -13,6 +13,10 @@ import {
   RATE_LIMIT_WINDOW_MS,
   RATE_LIMIT_MAX_REQUESTS,
   BODY_LIMIT,
+  ARGON2_TIME_COST,
+  ARGON2_HASH_LENGTH,
+  ARGON2_MEMORY_COST,
+  ARGON2_PARALLELISM,
 } from './constants';
 
 const app = express();
@@ -79,10 +83,10 @@ const firstStartup = async (): Promise<void> => {
 
     if (!admin) {
       const hashedPassword = await argon2.hash(ADMIN_PASSWORD, {
-        timeCost: 3,
-        memoryCost: 256,
-        parallelism: 4,
-        hashLength: 32,
+        timeCost: ARGON2_TIME_COST,
+        memoryCost: ARGON2_MEMORY_COST,
+        parallelism: ARGON2_PARALLELISM,
+        hashLength: ARGON2_HASH_LENGTH,
         type: argon2.argon2id,
       });
       await prisma.admins.create({
