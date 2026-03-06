@@ -11,6 +11,6 @@ const router = express.Router();
 router.get('/meals', middleware, getMealsController);
 router.get('/exercises', middleware, getExercisesController);
 router.get('/generate-password', middleware, getGeneratedPasswordController);
-router.get('/health', healthCheckController);
+router.get('/health', middleware, healthCheckController);
 
 export default router;

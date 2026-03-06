@@ -17,12 +17,17 @@ const verifyAdmin = (
     return res.status(401).json({ error: 'Unauthorized' });
   }
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as jwt.JwtPayload & {
+    const decoded = jwt.verify(token, JWT_SECRET, {
+      issuer: 'admin-web-fitness',
+      audience: 'admin',
+    }) as jwt.JwtPayload & {
       adminId: number;
+      sub?: string;
     };
     if (!decoded.adminId || typeof decoded.adminId !== 'number') {
       return res.status(401).json({ error: 'Invalid token payload' });
     }
+
     (req as any).admin = { adminId: decoded.adminId };
     next();
   } catch (error) {

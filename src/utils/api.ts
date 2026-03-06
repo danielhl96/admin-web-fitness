@@ -34,10 +34,23 @@ async function apiRequest<T>(
   } catch (error) {
     if (axios.isAxiosError(error)) {
       if (error.response) {
-        return {
-          status: 'error',
-          message: error.response.data?.error || 'Server error',
-        };
+        if (error.response.status === 401) {
+          try {
+            await axios.post(
+              `${API_ADMIN_URL}refresh_token`,
+              {},
+              { withCredentials: true }
+            );
+            return await apiRequest<T>(method, url, data, config);
+          } catch (refreshError) {
+            return { status: 'error', message: 'Session expired' };
+          }
+        } else {
+          return {
+            status: 'error',
+            message: error.response.data?.error || 'Server error',
+          };
+        }
       } else if (error.request) {
         return { status: 'error', message: 'Network error' };
       } else {

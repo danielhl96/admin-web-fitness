@@ -17,6 +17,21 @@ const hashPassword = async (password: string): Promise<string> => {
 };
 
 export const registerAdmin = async (email: string, password: string) => {
+  const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if (!emailIsValid) {
+    throw new Error('Invalid email format');
+  }
+
+  const passwordIsValid =
+    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*'])[A-Za-z\d!@#$%^&*']{8,}$/.test(
+      password
+    );
+  if (!passwordIsValid) {
+    throw new Error(
+      "Password must be at least 8 characters long and contain at least one letter, one number, and one special character (!@#$%^&*')"
+    );
+  }
+
   return await prisma.admins.create({
     data: {
       email: email,
@@ -51,6 +66,11 @@ export const loginAdmin = async (email: string, password: string) => {
 
   const token = jwt.sign({ adminId: admin.id }, process.env.JWT_SECRET!, {
     expiresIn: '1h',
+    jwtid: `${admin.id}-${Date.now()}`,
+    issuer: 'admin-web-fitness',
+    audience: 'admin',
+    subject: admin.id.toString(),
+    notBefore: '0s',
   });
 
   return token;
@@ -69,6 +89,11 @@ export const refreshAdminToken = async (adminId: number) => {
 
   const token = jwt.sign({ adminId: admin.id }, process.env.JWT_SECRET!, {
     expiresIn: '1h',
+    jwtid: `${admin.id}-${Date.now()}`,
+    issuer: 'admin-web-fitness',
+    audience: 'admin',
+    subject: adminId.toString(),
+    notBefore: '0s',
   });
 
   return token;

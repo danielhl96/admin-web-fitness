@@ -16,7 +16,7 @@ router.post('/admins/register', middleware, registerAdminController);
 router.post('/admins/login', loginAdminController);
 router.post('/admins/logout', middleware, logoutAdminController);
 router.delete('/admins/delete/:id', middleware, deleteAdminController);
-router.post('/admins/refresh_token', middleware, refreshAdminTokenController);
+router.post('/admins/refresh_token', refreshAdminTokenController);
 router.get('/admins/check_auth', middleware, (req, res) => {
   res.status(200).json({ authenticated: true });
 });

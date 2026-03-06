@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import {
   fetchAdmins,
   registerAdmin,
@@ -6,6 +7,11 @@ import {
   loginAdmin,
   refreshAdminToken,
 } from '../service/admin.service';
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
 
 export const fetchAdminsController = async (req: Request, res: Response) => {
   try {
@@ -59,7 +65,7 @@ export const loginAdminController = async (req: Request, res: Response) => {
     const token = await loginAdmin(email, password);
 
     res.cookie('admin_token', token, {
-      httpOnly: false,
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Secure in production
       sameSite: 'strict',
       maxAge: 20 * 60 * 1000, // 20 minutes
@@ -82,16 +88,25 @@ export const refreshAdminTokenController = async (
   req: Request,
   res: Response
 ) => {
-  const { adminId } = req.body;
-
-  if (!adminId) {
-    return res.status(400).json({ message: 'Admin ID is required' });
+  const token = req.cookies.admin_token;
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
   }
 
+  const decoded = jwt.verify(token, JWT_SECRET, {
+    ignoreExpiration: true,
+    issuer: 'admin-web-fitness',
+    audience: 'admin',
+  }) as jwt.JwtPayload & { adminId: number };
+  if (!decoded || !decoded.adminId || typeof decoded.adminId !== 'number') {
+    return res.status(400).json({ message: 'Invalid token' });
+  }
+
+  const adminIdNum = decoded.adminId;
   try {
-    const newToken = await refreshAdminToken(adminId);
+    const newToken = await refreshAdminToken(adminIdNum);
     res.cookie('admin_token', newToken, {
-      httpOnly: false,
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Secure in production
       sameSite: 'strict',
       maxAge: 20 * 60 * 1000, // 20 minutes
