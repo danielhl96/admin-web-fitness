@@ -1,7 +1,6 @@
 import { prisma, prismaUser } from '../prisma/Prisma';
-import { validateEmail } from '../helper/emailvalid';
-import { validatePassword } from '../helper/passwordvalid';
 import argon2 from 'argon2';
+import { AppError } from '../AppError';
 
 export const fetchUsers = async () => {
   return await prismaUser.users.findMany();
@@ -18,8 +17,15 @@ const hashPassword = async (password: string): Promise<string> => {
 };
 
 export const createUser = async (email: string, password: string) => {
-  validateEmail(email);
-  validatePassword(password);
+  const existingUser = await prismaUser.users.findUnique({
+    where: {
+      email,
+    },
+  });
+
+  if (existingUser) {
+    throw new AppError(400, 'Email already in use');
+  }
   return await prismaUser.users.create({
     data: {
       email: email,
@@ -29,6 +35,15 @@ export const createUser = async (email: string, password: string) => {
 };
 
 export const deleteUser = async (id: number) => {
+  const existingUser = await prismaUser.users.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!existingUser) {
+    throw new AppError(404, 'User not found');
+  }
   return await prismaUser.users.delete({
     where: {
       id,
@@ -37,8 +52,6 @@ export const deleteUser = async (id: number) => {
 };
 
 export const updateUserMail = async (id: number, email: string) => {
-  validateEmail(email);
-
   const existingMail = await prismaUser.users.findFirst({
     where: {
       email,
@@ -46,7 +59,7 @@ export const updateUserMail = async (id: number, email: string) => {
     },
   });
   if (existingMail) {
-    throw new Error('Email already in use');
+    throw new AppError(400, 'Email already in use');
   }
 
   return await prismaUser.users.update({
@@ -60,7 +73,15 @@ export const updateUserMail = async (id: number, email: string) => {
 };
 
 export const updateUserPassword = async (id: number, password: string) => {
-  validatePassword(password);
+  const existingUser = await prismaUser.users.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!existingUser) {
+    throw new AppError(404, 'User not found');
+  }
   return await prismaUser.users.update({
     where: {
       id,
@@ -72,14 +93,30 @@ export const updateUserPassword = async (id: number, password: string) => {
 };
 
 export const getUserById = async (id: number) => {
-  return await prismaUser.users.findUnique({
+  const existingUser = await prismaUser.users.findUnique({
     where: {
       id,
     },
   });
+
+  if (!existingUser) {
+    throw new AppError(404, 'User not found');
+  }
+
+  return existingUser;
 };
 
 export const setUserLockout = async (id: number, isLocked: boolean) => {
+  const existingUser = await prismaUser.users.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!existingUser) {
+    throw new AppError(404, 'User not found');
+  }
+
   return await prismaUser.users.update({
     where: {
       id,

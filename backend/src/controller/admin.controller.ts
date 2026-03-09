@@ -7,6 +7,7 @@ import {
   loginAdmin,
   refreshAdminToken,
 } from '../service/admin.service';
+import { AppError } from '../AppError';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -18,7 +19,9 @@ export const fetchAdminsController = async (req: Request, res: Response) => {
     const admins = await fetchAdmins();
     res.status(200).json({ message: 'Admins fetched successfully', admins });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching admins' });
+    res.status(500).json({
+      message: (error as AppError).message || 'Error fetching admins',
+    });
   }
 };
 
@@ -35,7 +38,9 @@ export const registerAdminController = async (req: Request, res: Response) => {
       .status(201)
       .json({ message: 'Admin registered successfully', admin: newAdmin });
   } catch (error) {
-    res.status(500).json({ message: 'Error registering admin' });
+    res.status(500).json({
+      message: (error as AppError).message || 'Error registering admin',
+    });
   }
 };
 
@@ -43,15 +48,13 @@ export const deleteAdminController = async (req: Request, res: Response) => {
   const { id } = req.params;
   const adminId = Number(id);
 
-  if (isNaN(adminId)) {
-    return res.status(400).json({ message: 'Invalid admin ID' });
-  }
-
   try {
     await deleteAdmin(adminId);
     res.status(200).json({ message: 'Admin deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting admin' });
+    res
+      .status(500)
+      .json({ message: (error as AppError).message || 'Error deleting admin' });
   }
 };
 
@@ -72,7 +75,9 @@ export const loginAdminController = async (req: Request, res: Response) => {
     });
     res.status(200).json({ message: 'Admin logged in successfully', token });
   } catch (error) {
-    res.status(500).json({ message: 'Error logging in admin' });
+    res.status(500).json({
+      message: (error as AppError).message || 'Error logging in admin',
+    });
   }
 };
 export const logoutAdminController = async (req: Request, res: Response) => {
@@ -80,7 +85,9 @@ export const logoutAdminController = async (req: Request, res: Response) => {
     res.clearCookie('admin_token');
     res.status(200).json({ message: 'Admin logged out successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error logging out admin' });
+    res.status(500).json({
+      message: (error as AppError).message || 'Error logging out admin',
+    });
   }
 };
 
@@ -115,6 +122,8 @@ export const refreshAdminTokenController = async (
       .status(200)
       .json({ message: 'Admin token refreshed successfully', token: newToken });
   } catch (error) {
-    res.status(500).json({ message: 'Error refreshing admin token' });
+    res.status(500).json({
+      message: (error as AppError).message || 'Error refreshing admin token',
+    });
   }
 };

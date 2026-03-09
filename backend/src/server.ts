@@ -3,13 +3,13 @@ import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import argon2 from 'argon2';
 import cookieParser from 'cookie-parser';
 import { prisma, prismaUser } from './prisma/Prisma';
 import adminRoutes from './routes/admin.routes';
 import userRoutes from './routes/user.routes';
 import helperRoutes from './routes/helper.routes';
 import { firstStartup } from './init';
+import { errorMiddleware } from './middleware/ErrorMiddleware';
 import {
   RATE_LIMIT_WINDOW_MS,
   RATE_LIMIT_MAX_REQUESTS,
@@ -68,6 +68,7 @@ process.on('SIGINT', async () => {
 app.use('/api', helperRoutes);
 app.use('/api', userRoutes);
 app.use('/api', adminRoutes);
+app.use(errorMiddleware);
 
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);

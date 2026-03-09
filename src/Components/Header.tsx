@@ -12,7 +12,7 @@ function Header({
     console.log('Logging out...');
     try {
       await axios.post(
-        'http://localhost:3000/admins/logout',
+        'http://localhost:3000/api/admins/logout',
         {},
         { withCredentials: true }
       );

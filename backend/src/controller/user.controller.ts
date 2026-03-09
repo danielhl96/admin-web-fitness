@@ -8,13 +8,9 @@ import {
   setUserLockout,
   fetchUsers,
 } from '../service/user.service';
-
+import { AppError } from '../AppError';
 export const createUserController = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required' });
-  }
 
   try {
     const user = await createUser(email, password);
@@ -23,7 +19,9 @@ export const createUserController = async (req: Request, res: Response) => {
       user: { id: user.id, email: user.email },
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating user' });
+    res
+      .status(500)
+      .json({ message: (error as AppError).message || 'Error creating user' });
   }
 };
 
@@ -32,7 +30,9 @@ export const fetchUsersController = async (req: Request, res: Response) => {
     const users = await fetchUsers();
     res.status(200).json({ message: 'Users fetched successfully', users });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching users' });
+    res
+      .status(500)
+      .json({ message: (error as AppError).message || 'Error fetching users' });
   }
 };
 
@@ -48,7 +48,9 @@ export const deleteUserController = async (req: Request, res: Response) => {
     await deleteUser(userId);
     res.status(200).json({ message: 'User deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting user' });
+    res
+      .status(500)
+      .json({ message: (error as AppError).message || 'Error deleting user' });
   }
 };
 
@@ -65,7 +67,9 @@ export const updateUserMailController = async (req: Request, res: Response) => {
     await updateUserMail(userId, email);
     res.status(200).json({ message: 'User email updated successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating user email' });
+    res.status(500).json({
+      message: (error as AppError).message || 'Error updating user email',
+    });
   }
 };
 
@@ -77,25 +81,19 @@ export const updateUserPasswordController = async (
   const { password } = req.body;
   const userId = Number(id);
 
-  if (isNaN(userId) || !password) {
-    return res.status(400).json({ message: 'Invalid user ID or password' });
-  }
-
   try {
     await updateUserPassword(userId, password);
     res.status(200).json({ message: 'User password updated successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating user password' });
+    res.status(500).json({
+      message: (error as AppError).message || 'Error updating user password',
+    });
   }
 };
 
 export const getUserByIdController = async (req: Request, res: Response) => {
   const { id } = req.params;
   const userId = Number(id);
-
-  if (isNaN(userId)) {
-    return res.status(400).json({ message: 'Invalid user ID' });
-  }
 
   try {
     const user = await getUserById(userId);
@@ -107,7 +105,9 @@ export const getUserByIdController = async (req: Request, res: Response) => {
       user: { id: user.id, email: user.email, locked: user.locked },
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error retrieving user' });
+    res.status(500).json({
+      message: (error as AppError).message || 'Error retrieving user',
+    });
   }
 };
 
@@ -128,6 +128,11 @@ export const setUserLockoutController = async (req: Request, res: Response) => {
       .status(200)
       .json({ message: `User lockout status updated to ${locked}` });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating user lockout status' });
+    res
+      .status(500)
+      .json({
+        message:
+          (error as AppError).message || 'Error updating user lockout status',
+      });
   }
 };

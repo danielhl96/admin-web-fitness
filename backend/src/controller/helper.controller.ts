@@ -5,13 +5,16 @@ import {
   generatePassword,
 } from '../service/helper.service';
 import { prisma, prismaUser } from '../prisma/Prisma';
+import { AppError } from '../AppError';
 
 export const getMealsController = async (req: Request, res: Response) => {
   try {
     const meals = await fetchMeals();
     res.status(200).json({ message: 'Meals fetched successfully', meals });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching meals' });
+    res
+      .status(500)
+      .json({ message: (error as AppError).message || 'Error fetching meals' });
   }
 };
 
@@ -22,7 +25,11 @@ export const getExercisesController = async (req: Request, res: Response) => {
       .status(200)
       .json({ message: 'Exercises fetched successfully', exercises });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching exercises' });
+    res
+      .status(500)
+      .json({
+        message: (error as AppError).message || 'Error fetching exercises',
+      });
   }
 };
 
@@ -33,7 +40,11 @@ export const getGeneratedPasswordController = (req: Request, res: Response) => {
       .status(200)
       .json({ message: 'Password generated successfully', password });
   } catch (error) {
-    res.status(500).json({ message: 'Error generating password' });
+    res
+      .status(500)
+      .json({
+        message: (error as AppError).message || 'Error generating password',
+      });
   }
 };
 

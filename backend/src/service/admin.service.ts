@@ -1,8 +1,7 @@
 import { prisma } from '../prisma/Prisma';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
-import { validateEmail } from '../helper/emailvalid';
-import { validatePassword } from '../helper/passwordvalid';
+import { AppError } from '../AppError';
 
 export const fetchAdmins = async () => {
   return await prisma.admins.findMany();
@@ -19,8 +18,15 @@ const hashPassword = async (password: string): Promise<string> => {
 };
 
 export const registerAdmin = async (email: string, password: string) => {
-  validateEmail(email);
-  validatePassword(password);
+  const existingAdmin = await prisma.admins.findUnique({
+    where: {
+      email,
+    },
+  });
+
+  if (existingAdmin) {
+    throw new AppError(400, 'Email already in use');
+  }
 
   return await prisma.admins.create({
     data: {
@@ -30,6 +36,16 @@ export const registerAdmin = async (email: string, password: string) => {
   });
 };
 export const deleteAdmin = async (id: number) => {
+  const existingAdmin = await prisma.admins.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!existingAdmin) {
+    throw new AppError(404, 'Admin not found');
+  }
+
   return await prisma.admins.delete({
     where: {
       id,
@@ -45,13 +61,13 @@ export const loginAdmin = async (email: string, password: string) => {
   });
 
   if (!admin) {
-    throw new Error('Admin not found');
+    throw new AppError(404, 'Admin not found');
   }
 
   const isPasswordValid = await argon2.verify(admin.password, password);
 
   if (!isPasswordValid) {
-    throw new Error('Invalid password');
+    throw new AppError(400, 'Invalid password');
   }
 
   const token = jwt.sign({ adminId: admin.id }, process.env.JWT_SECRET!, {
@@ -74,7 +90,7 @@ export const refreshAdminToken = async (adminId: number) => {
   });
 
   if (!admin) {
-    throw new Error('Admin not found');
+    throw new AppError(404, 'Admin not found');
   }
 
   const token = jwt.sign({ adminId: admin.id }, process.env.JWT_SECRET!, {
