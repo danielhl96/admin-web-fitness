@@ -8,8 +8,12 @@ import {
   setUserLockout,
   fetchUsers,
 } from '../service/user.service';
-import { AppError } from '../AppError';
-export const createUserController = async (req: Request, res: Response) => {
+
+export const createUserController = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   const { email, password } = req.body;
 
   try {
@@ -19,63 +23,60 @@ export const createUserController = async (req: Request, res: Response) => {
       user: { id: user.id, email: user.email },
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: (error as AppError).message || 'Error creating user' });
+    next(error);
   }
 };
 
-export const fetchUsersController = async (req: Request, res: Response) => {
+export const fetchUsersController = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   try {
     const users = await fetchUsers();
     res.status(200).json({ message: 'Users fetched successfully', users });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: (error as AppError).message || 'Error fetching users' });
+    next(error);
   }
 };
 
-export const deleteUserController = async (req: Request, res: Response) => {
+export const deleteUserController = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   const { id } = req.params;
   const userId = Number(id);
-
-  if (isNaN(userId)) {
-    return res.status(400).json({ message: 'Invalid user ID' });
-  }
 
   try {
     await deleteUser(userId);
     res.status(200).json({ message: 'User deleted successfully' });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: (error as AppError).message || 'Error deleting user' });
+    next(error);
   }
 };
 
-export const updateUserMailController = async (req: Request, res: Response) => {
+export const updateUserMailController = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   const { id } = req.params;
   const { email } = req.body;
   const userId = Number(id);
-
-  if (isNaN(userId) || !email) {
-    return res.status(400).json({ message: 'Invalid user ID or email' });
-  }
 
   try {
     await updateUserMail(userId, email);
     res.status(200).json({ message: 'User email updated successfully' });
   } catch (error) {
-    res.status(500).json({
-      message: (error as AppError).message || 'Error updating user email',
-    });
+    next(error);
   }
 };
 
 export const updateUserPasswordController = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: Function
 ) => {
   const { id } = req.params;
   const { password } = req.body;
@@ -85,13 +86,15 @@ export const updateUserPasswordController = async (
     await updateUserPassword(userId, password);
     res.status(200).json({ message: 'User password updated successfully' });
   } catch (error) {
-    res.status(500).json({
-      message: (error as AppError).message || 'Error updating user password',
-    });
+    next(error);
   }
 };
 
-export const getUserByIdController = async (req: Request, res: Response) => {
+export const getUserByIdController = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   const { id } = req.params;
   const userId = Number(id);
 
@@ -105,22 +108,18 @@ export const getUserByIdController = async (req: Request, res: Response) => {
       user: { id: user.id, email: user.email, locked: user.locked },
     });
   } catch (error) {
-    res.status(500).json({
-      message: (error as AppError).message || 'Error retrieving user',
-    });
+    next(error);
   }
 };
 
-export const setUserLockoutController = async (req: Request, res: Response) => {
+export const setUserLockoutController = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   const { id } = req.params;
   const { locked } = req.body;
   const userId = Number(id);
-
-  if (isNaN(userId) || typeof locked !== 'boolean') {
-    return res
-      .status(400)
-      .json({ message: 'Invalid user ID or lockout status' });
-  }
 
   try {
     await setUserLockout(userId, locked);
@@ -128,11 +127,6 @@ export const setUserLockoutController = async (req: Request, res: Response) => {
       .status(200)
       .json({ message: `User lockout status updated to ${locked}` });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message:
-          (error as AppError).message || 'Error updating user lockout status',
-      });
+    next(error);
   }
 };

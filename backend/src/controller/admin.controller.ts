@@ -7,30 +7,31 @@ import {
   loginAdmin,
   refreshAdminToken,
 } from '../service/admin.service';
-import { AppError } from '../AppError';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is required');
 }
 
-export const fetchAdminsController = async (req: Request, res: Response) => {
+export const fetchAdminsController = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   try {
     const admins = await fetchAdmins();
     res.status(200).json({ message: 'Admins fetched successfully', admins });
   } catch (error) {
-    res.status(500).json({
-      message: (error as AppError).message || 'Error fetching admins',
-    });
+    next(error);
   }
 };
 
-export const registerAdminController = async (req: Request, res: Response) => {
+export const registerAdminController = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required' });
-  }
 
   try {
     const newAdmin = await registerAdmin(email, password);
@@ -38,13 +39,15 @@ export const registerAdminController = async (req: Request, res: Response) => {
       .status(201)
       .json({ message: 'Admin registered successfully', admin: newAdmin });
   } catch (error) {
-    res.status(500).json({
-      message: (error as AppError).message || 'Error registering admin',
-    });
+    next(error);
   }
 };
 
-export const deleteAdminController = async (req: Request, res: Response) => {
+export const deleteAdminController = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   const { id } = req.params;
   const adminId = Number(id);
 
@@ -52,17 +55,16 @@ export const deleteAdminController = async (req: Request, res: Response) => {
     await deleteAdmin(adminId);
     res.status(200).json({ message: 'Admin deleted successfully' });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: (error as AppError).message || 'Error deleting admin' });
+    next(error);
   }
 };
 
-export const loginAdminController = async (req: Request, res: Response) => {
+export const loginAdminController = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required' });
-  }
 
   try {
     const token = await loginAdmin(email, password);
@@ -75,25 +77,26 @@ export const loginAdminController = async (req: Request, res: Response) => {
     });
     res.status(200).json({ message: 'Admin logged in successfully', token });
   } catch (error) {
-    res.status(500).json({
-      message: (error as AppError).message || 'Error logging in admin',
-    });
+    next(error);
   }
 };
-export const logoutAdminController = async (req: Request, res: Response) => {
+export const logoutAdminController = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   try {
     res.clearCookie('admin_token');
     res.status(200).json({ message: 'Admin logged out successfully' });
   } catch (error) {
-    res.status(500).json({
-      message: (error as AppError).message || 'Error logging out admin',
-    });
+    next(error);
   }
 };
 
 export const refreshAdminTokenController = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: Function
 ) => {
   const token = req.cookies.admin_token;
   if (!token) {
@@ -122,8 +125,6 @@ export const refreshAdminTokenController = async (
       .status(200)
       .json({ message: 'Admin token refreshed successfully', token: newToken });
   } catch (error) {
-    res.status(500).json({
-      message: (error as AppError).message || 'Error refreshing admin token',
-    });
+    next(error);
   }
 };

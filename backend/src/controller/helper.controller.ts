@@ -5,46 +5,47 @@ import {
   generatePassword,
 } from '../service/helper.service';
 import { prisma, prismaUser } from '../prisma/Prisma';
-import { AppError } from '../AppError';
 
-export const getMealsController = async (req: Request, res: Response) => {
+export const getMealsController = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   try {
     const meals = await fetchMeals();
     res.status(200).json({ message: 'Meals fetched successfully', meals });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: (error as AppError).message || 'Error fetching meals' });
+    next(error);
   }
 };
 
-export const getExercisesController = async (req: Request, res: Response) => {
+export const getExercisesController = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   try {
     const exercises = await fetchExercises();
     res
       .status(200)
       .json({ message: 'Exercises fetched successfully', exercises });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: (error as AppError).message || 'Error fetching exercises',
-      });
+    next(error);
   }
 };
 
-export const getGeneratedPasswordController = (req: Request, res: Response) => {
+export const getGeneratedPasswordController = (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   try {
     const password = generatePassword();
     res
       .status(200)
       .json({ message: 'Password generated successfully', password });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: (error as AppError).message || 'Error generating password',
-      });
+    next(error);
   }
 };
 

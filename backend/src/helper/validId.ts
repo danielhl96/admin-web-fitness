@@ -10,5 +10,5 @@ export const validId = (
   if (isNaN(parsedId) || parsedId <= 0) {
     throw new AppError(400, 'Invalid ID format');
   }
-  return parsedId;
+  next();
 };
