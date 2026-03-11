@@ -7,7 +7,7 @@ export const fetchAdmins = async () => {
   return await prisma.admins.findMany();
 };
 
-const hashPassword = async (password: string): Promise<string> => {
+export const hashPassword = async (password: string): Promise<string> => {
   return await argon2.hash(password, {
     timeCost: 3,
     memoryCost: 256,
@@ -39,6 +39,7 @@ export const deleteAdmin = async (id: number) => {
   const existingAdmin = await prisma.admins.findUnique({
     where: {
       id,
+      masterid: false,
     },
   });
 

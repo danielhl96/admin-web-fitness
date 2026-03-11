@@ -43,6 +43,20 @@ services:
     volumes:
       - db_admin_data:/var/lib/postgresql/data
 
+  database_admin_test:
+    image: postgres:15
+    container_name: admin-web-fitness-database-admin-test-dev
+    ports:
+      - '5434:5432'
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=fitness_admin_test
+    volumes:
+      - db_admin_test_data:/var/lib/postgresql/data
+
 volumes:
   db_admin_data:
+    driver: local
+  db_admin_test_data:
     driver: local
