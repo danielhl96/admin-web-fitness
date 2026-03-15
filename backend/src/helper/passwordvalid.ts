@@ -12,7 +12,7 @@ export const validatePassword = (
   if (!passwordIsValid) {
     throw new AppError(
       400,
-      `Password must be at least ${PASSWORD_MIN_LENGTH} characters long and contain at least one letter, one number, and one special character (!@#$%^&*')`
+      `Password must be at least ${PASSWORD_MIN_LENGTH} characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (!@#$%^&*)`
     );
   }
   next();
