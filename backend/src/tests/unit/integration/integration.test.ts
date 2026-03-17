@@ -1,8 +1,6 @@
 import app from '../../../app';
 import request from 'supertest';
 import { prisma, prismaUser } from '../../../prisma/Prisma';
-import { error } from 'console';
-import { register } from 'module';
 
 const agent = request.agent(app);
 
