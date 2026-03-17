@@ -34,10 +34,8 @@ export const registerAdminController = async (
   const { email, password } = req.body;
 
   try {
-    const newAdmin = await registerAdmin(email, password);
-    res
-      .status(201)
-      .json({ message: 'Admin registered successfully', admin: newAdmin });
+    await registerAdmin(email, password);
+    res.status(201).json({ message: 'Admin registered successfully' });
   } catch (error) {
     next(error);
   }
@@ -75,7 +73,7 @@ export const loginAdminController = async (
       sameSite: 'strict',
       maxAge: 20 * 60 * 1000, // 20 minutes
     });
-    res.status(200).json({ message: 'Admin logged in successfully', token });
+    res.status(200).json({ message: 'Admin logged in successfully' });
   } catch (error) {
     next(error);
   }

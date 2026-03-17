@@ -19,6 +19,7 @@ function ModalAccountDelete({
       <div className="flex flex-row gap-2 justify-center mt-4">
         <Button
           onClick={async () => {
+            console.log(selectedUser.id);
             const response = await handleAccountDelete(selectedUser.id);
             if (isSuccessResponse(response)) {
               if (onSaved) await onSaved();

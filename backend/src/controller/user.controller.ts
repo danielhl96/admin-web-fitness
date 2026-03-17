@@ -20,7 +20,6 @@ export const createUserController = async (
     const user = await createUser(email, password);
     res.status(201).json({
       message: 'User created successfully',
-      user: { id: user.id, email: user.email },
     });
   } catch (error) {
     next(error);

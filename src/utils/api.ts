@@ -99,8 +99,7 @@ export async function handleAccountDelete(
 ): Promise<ApiResponse<AccountDeleteData>> {
   const response = await apiRequest<AccountDeleteData>(
     'delete',
-    `${API_URL}
-    ${userId}/delete`
+    `${API_URL}${userId}/delete`
   );
 
   return response;
