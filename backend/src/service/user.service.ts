@@ -1,4 +1,4 @@
-import { prisma, prismaUser } from '../prisma/Prisma';
+import { prismaUser } from '../prisma/Prisma';
 import argon2 from 'argon2';
 import { AppError } from '../AppError';
 

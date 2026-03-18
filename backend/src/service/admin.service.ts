@@ -27,13 +27,13 @@ export const registerAdmin = async (email: string, password: string) => {
   if (existingAdmin) {
     throw new AppError(400, 'Email already in use');
   }
-
-  return await prisma.admins.create({
+  const admin = await prisma.admins.create({
     data: {
       email: email,
       password: await hashPassword(password),
     },
   });
+  return admin;
 };
 export const deleteAdmin = async (id: number) => {
   const existingAdmin = await prisma.admins.findUnique({

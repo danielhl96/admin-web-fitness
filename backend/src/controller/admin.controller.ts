@@ -34,8 +34,10 @@ export const registerAdminController = async (
   const { email, password } = req.body;
 
   try {
-    await registerAdmin(email, password);
-    res.status(201).json({ message: 'Admin registered successfully' });
+    const admin = await registerAdmin(email, password);
+    res
+      .status(201)
+      .json({ message: 'Admin registered successfully', adminId: admin.id });
   } catch (error) {
     next(error);
   }
