@@ -5,34 +5,11 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Header from '../Components/HeaderLogout';
+import { loginAdmin } from '../utils/api';
 
 function LoginPage() {
   const navigate = useNavigate();
-  async function login(email: string, password: string) {
-    try {
-      const response = await axios.post(
-        'http://localhost:3000/api/admins/login',
-        {
-          email,
-          password,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          withCredentials: true,
-        }
-      );
 
-      console.log('Login successful:', response.data);
-      setErrorMessage(response.data.message || 'Login successful');
-      navigate('/dashboard');
-      return response.data;
-    } catch (error) {
-      setErrorMessage('Login failed');
-      throw error;
-    }
-  }
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -51,11 +28,14 @@ function LoginPage() {
             <Button
               onClick={async () => {
                 try {
-                  await login(email, password);
+                  await loginAdmin(email, password);
 
                   navigate('/dashboard');
                 } catch (err) {
                   // Error is handled in login function
+                  setErrorMessage(
+                    typeof err === 'string' ? err : 'Login failed'
+                  );
                 }
               }}
               w="w-full"

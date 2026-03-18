@@ -62,6 +62,26 @@ async function apiRequest<T>(
   }
 }
 
+export async function loginAdmin(
+  email: string,
+  password: string
+): Promise<ApiResponse<{ message: string }>> {
+  const response = await apiRequest<{ message: string }>(
+    'post',
+    `${API_ADMIN_URL}login`,
+    { email, password }
+  );
+  return response;
+}
+
+export async function logoutAdmin(): Promise<ApiResponse<{ message: string }>> {
+  const response = await apiRequest<{ message: string }>(
+    'post',
+    `${API_ADMIN_URL}logout`
+  );
+  return response;
+}
+
 export async function handleEmailChange(
   email: string,
   userId: number
