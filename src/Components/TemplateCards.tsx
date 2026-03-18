@@ -1,3 +1,5 @@
+// This is a reusable card component that can be used to display different sections of the dashboard.
+// It accepts props for title and children. The component is styled with Tailwind CSS and has a glassmorphism effect.
 function TemplateCards({
   title,
   children,

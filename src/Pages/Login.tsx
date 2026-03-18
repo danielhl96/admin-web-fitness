@@ -2,7 +2,6 @@ import PasswordInput from '../Components/passwordinput';
 import EmailInput from '../Components/emailinput';
 import Button from '../Components/Button';
 import { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Header from '../Components/HeaderLogout';
 import { loginAdmin } from '../utils/api';

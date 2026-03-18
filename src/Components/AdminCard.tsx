@@ -1,6 +1,9 @@
 import { FaTrash } from 'react-icons/fa';
 import { Admin } from '../types';
 import Button from './Button';
+
+// This one is a reusable card used to display an admin in the admin management view
+
 function AdminCard(
   admin: Admin,
   setIsAdminDeleting: (deleting: boolean) => void,

@@ -1,12 +1,14 @@
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { logoutAdmin } from '../utils/api';
-import { log } from 'console';
+
+// This is the header component used in the dashboard view. It contains a dropdown menu with options to navigate to the dashboard, create a new admin, and logout. The header is responsive and adapts to different screen sizes.
 function Header({
   setIsAdminView,
+  setIsUserView,
 }: {
   setIsAdminView: (value: boolean) => void;
+  setIsUserView: (value: boolean) => void;
 }) {
   const [isHeaderVisible, setIsHeaderVisible] = useState(false);
   const navigate = useNavigate();
@@ -56,11 +58,8 @@ function Header({
           </button>
           <ul
             tabIndex={0}
-            className={`menu menu-sm dropdown-content hidden ${isHeaderVisible ? '' : ''} bg-black rounded-box z-1 mt-3 w-52 p-2 shadow`}
+            className={`menu menu-sm dropdown-content ${isHeaderVisible ? 'block' : 'hidden'} bg-black rounded-box z-1 mt-3 w-52 p-2 shadow`}
           >
-            <li>
-              <a>Dashboard</a>
-            </li>
             <li>
               <a
                 onClick={() => {
@@ -69,6 +68,17 @@ function Header({
                 }}
               >
                 Create Admin
+              </a>
+            </li>
+
+            <li>
+              <a
+                onClick={() => {
+                  setIsUserView(true);
+                  setIsHeaderVisible(false);
+                }}
+              >
+                Create User
               </a>
             </li>
 

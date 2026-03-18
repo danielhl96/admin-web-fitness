@@ -1,5 +1,7 @@
 import React from 'react';
 
+// This is a reusable button component used throughout the app. It accepts various props to customize its appearance and behavior.
+
 interface ButtonProps {
   onClick?: () => void;
   disabled?: boolean;

@@ -3,7 +3,9 @@ import { User } from '../types';
 import Button from './Button';
 import { handleLockToggle } from '../utils/api';
 import isSuccessResponse from '../utils/isSuccessResponse';
-
+// This is a card component that displays user information and provides buttons for viewing, editing, deleting, and locking/unlocking the user account.
+// It accepts props for the user object, functions to set the selected user, editing state, deleting state, notification manager state,
+// and a function to update the users list.
 function UserCard(
   user: User,
   setSelectedUser: (user: User) => void,

@@ -1,3 +1,5 @@
+// This is a reusable modal component that can be used to display different modals throughout the application.
+// It accepts props for title and children.
 function TemplateModal({
   title,
   children,

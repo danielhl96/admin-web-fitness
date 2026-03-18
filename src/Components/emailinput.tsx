@@ -3,6 +3,7 @@ import '../index.css';
 
 import { EnvelopeIcon } from '@heroicons/react/24/outline';
 
+// This is a reusable email input component used in the login and admin management views. It validates the email format and displays an error message if the input is invalid.
 interface EmailInputProps {
   value: string;
   onChange: (value: string) => void;

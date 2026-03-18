@@ -1,3 +1,6 @@
+// This file contains helper functions for the dashboard component.
+//TypeGuards protect against null and undefined values and provide type safety when working with the data fetched from the API.
+// These functions are used to convert the activity level and goal values from the API into human-readable strings that can be displayed in the UI.
 export function getActivityLevelString(
   level: string | null | undefined
 ): string {

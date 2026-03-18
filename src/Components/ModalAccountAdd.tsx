@@ -7,7 +7,11 @@ import { ModalAccountAddProps } from '../types.ts';
 import { handleCreateUser, handleGeneratePassword } from '../utils/api.ts';
 import isSuccessResponse from '../utils/isSuccessResponse.tsx';
 import useUserCredential from '../utils/useUserCredential.tsx';
-
+//Break in components to avoid bloating the dashboard component.
+// This component is used to add a new account.
+// It contains a form with inputs for email, password, and confirm password.
+// It also has a button to generate a random password and a button to create the account.
+// The component is styled with Tailwind CSS and has a glassmorphism effect.
 function ModalAccountAdd({
   onSaved,
   setIsAddingAccount,

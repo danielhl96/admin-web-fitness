@@ -1,5 +1,5 @@
 import '../index.css';
-
+// This is a reusable input component that can be used throughout the application. It accepts props for value, onChange, width, height, placeholder, disabled state, id, and onBlur event. The component is styled with Tailwind CSS and has a glassmorphism effect.
 interface InputProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;

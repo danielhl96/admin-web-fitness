@@ -25,7 +25,11 @@ import ModalAdminDelete from '../../Components/ModalAdminDelete.tsx';
 import ModalUserView from '../../Components/ModalUserView.tsx';
 
 const NOTIFICATION_DURATION = 2000; // ms
-
+// This is the main dashboard component that displays user management,
+// admin overview, and statistics for exercises and meals.
+// It fetches data from the API and manages the state for users, admins, exercises, meals, and UI states.
+// The component also handles the logic for viewing user details, editing user information, adding new accounts, and deleting accounts.
+// It uses various child components to display the data and modals for different actions.
 function Dashboard() {
   // State for managing users data and UI state
   const [users, setUsers] = useState<readonly User[]>([]);
@@ -197,7 +201,10 @@ function Dashboard() {
   // Render the dashboard UI
   return (
     <div className="min-h-[100dvh] bg-gradient-to-b from-gray-900 to-black ">
-      <Header setIsAdminView={setIsAdminView} />
+      <Header
+        setIsAdminView={setIsAdminView}
+        setIsUserView={setIsAddingAccount}
+      />
       <div className="items-center justify-center  flex flex-col pt-10 px-3 lg:px-2">
         <div className="grid grid-cols-1 gap-3 lg:gap-2 py-2 lg:grid-cols-3 items-center justify-center overflow-y-auto max-h-[95dvh]  px-3 lg:px-2 ">
           <TemplateCards title="User Management">

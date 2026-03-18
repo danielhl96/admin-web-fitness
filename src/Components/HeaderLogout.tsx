@@ -1,3 +1,5 @@
+// This is the header component used in the login view. It contains the title of the application and a logout button. The header is responsive and adapts to different screen sizes.
+
 function Header({}: {}) {
   return (
     <div className="navbar  bg-black shadow-sm">

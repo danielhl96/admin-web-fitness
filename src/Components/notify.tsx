@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+// This is a notification component that can be used to display success or error messages to the user.
+// It accepts props for title, message, type (success or error), duration, and an optional onClose callback.
 
 export interface NotifyProps {
   title: string;
