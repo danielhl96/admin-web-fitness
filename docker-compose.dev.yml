@@ -36,7 +36,7 @@ services:
     depends_on:
       - database_admin
       - database_user
-    command: sh -c "npx prisma generate --schema=prisma-user/schema.prisma && npx prisma generate --schema=prisma-admin/schema.admin.prisma && npx prisma db push --config=prisma-user/prisma.config.ts && npx prisma db push --config=prisma-admin/prisma.config.ts && npm run test:integration"
+    command: sh -c "npx prisma generate --schema=prisma-user/schema.prisma && npx prisma generate --schema=prisma-admin/schema.admin.prisma && npx prisma db push --config=prisma-user/prisma.config.ts && npx prisma db push --config=prisma-admin/prisma.config.ts && npm run test:integration && npm run dev"
 
   database_admin:
     image: postgres:15
