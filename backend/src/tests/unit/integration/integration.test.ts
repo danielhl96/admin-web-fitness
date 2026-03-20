@@ -10,6 +10,13 @@ describe('Integration Test', () => {
   beforeAll(async () => {
     await prisma.$connect();
     await prismaUser.$connect();
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      await prismaUser.$queryRaw`SELECT 1`;
+      console.log('DB connection successful');
+    } catch (e) {
+      console.log('DB connection failed:', e);
+    }
   });
 
   afterAll(async () => {
@@ -29,8 +36,8 @@ describe('Integration Test', () => {
 
   it('should return 200 OK for the login endpoint with existing user', async () => {
     const response = await agent.post('/api/admins/login').send({
-      email: 'masteradmin@admin.de',
-      password: 'admin123',
+      email: 'admin@master.de',
+      password: 'Admin@1234',
     });
     console.log('Response:', response.body);
     expect(response.status).toBe(200);
@@ -146,8 +153,8 @@ describe('Integration Test for user endpoints', () => {
 
   it('should return 200 OK for the login endpoint with existing user', async () => {
     const response = await agent.post('/api/admins/login').send({
-      email: 'masteradmin@admin.de',
-      password: 'admin123',
+      email: 'admin@master.de',
+      password: 'Admin@1234',
     });
     console.log('Response:', response.body);
     expect(response.status).toBe(200);

@@ -27,7 +27,9 @@ COPY . .
 
 RUN apk add --no-cache openssl
 
-RUN npx prisma generate
+# Build-Argumente für Datenbank-URLs
+ARG USER_DATABASE_URL
+ARG ADMIN_DATABASE_URL
 
 EXPOSE 3000
 
