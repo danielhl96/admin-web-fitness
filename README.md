@@ -86,6 +86,14 @@ The application provides the following features:
 
 The backend includes a suite of integration tests written with **Jest** and **Supertest**. The tests cover the majority of the API endpoints.
 
+### Unit Tests
+
+The unit tests contain several tests for the admin, user, and middleware services. They are located in `backend/src/tests/unit/` and include:
+
+- **Admin Service Tests** (`admin.service.test.ts`): Tests for admin authentication, registration, fetching admins, and deletion logic.
+- **User Service Tests** (`user.service.test.ts`): Tests for user registration, fetching users, updates, locking accounts, and user deletion.
+- **Middleware Tests** (`middleware.test.ts`): Tests for the authentication middleware (`verifyAdmin`) and error handling.
+
 ### Admin API
 
 | Route                       | Method | Status     |
